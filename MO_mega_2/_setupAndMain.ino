@@ -37,15 +37,36 @@ const long BLINK_INTERVAL = 100;                // interval at which to blink (m
   unsigned long currentMillis = 0;                // these 4 varaibles used for runningLED
   unsigned long previousBlinkLEDMillis = 0;       // will store last time LED was updated
 //  float dt = 0;
-  int frame = 0;                                  // used to track frame in blink pattern            
+  int frame = 0;                                  // used to track frame in blink pattern       
+  unsigned long previousEyeMillis = 0;     
 
 //unsigned long timer = 0;                    // was used to play audio in 3 second intervals.
                                             // don't believe it's used anymore
                                             
 String message;                             // for received I2C message
 
+  // eyes:
+  int cent_x, cent_y;
+  //  eye_width, eye_height, eye_sep;
 
-   int16_t cent_x, cent_y, eye_width, eye_height, eye_sep;
+  // my eye expression struct
+  struct Expression {
+    int eye_width;
+    int eye_height;
+    int eye_sep;                                  // note: separation is distance from screen center to eye center, not eye-to-eye
+  };
+//  typedef struct expression Expression;
+
+  // TODO - remeasure these eyes in Photoshop, with proper understanding of sep value
+  // declaring of eye expressions/frames
+  Expression sleepyEyes = {14, 2, 12};
+  Expression baseEyes = {26, 10, 22};
+  Expression narrowedBaseEyes = {26, 10, 20};
+  Expression bigEyes = {18, 18, 22};
+  Expression squintyEyes = {30, 6, 22};             // for random 'half-blink'
+  Expression wowEyes = {30, 32, 24};
+
+  int nextFlicker = 2;
 
 //_____________________________________________
 // declare objects
@@ -72,13 +93,12 @@ void setup() {
   }
   display.clearDisplay();
   display.display();
-
+  
   cent_x = display.width()/2;                 // 64
-  cent_y = display.height()/2 + 5;           // 16
-
-  eye_width = 15;
-  eye_height = 20;
-  eye_sep = 8;
+  cent_y = display.height()/2 + 4;           // 16 + 5 = 20
+  // all int values for eyes are x2, as OLED is 128x32, but fullsize will be 64x32(26).
+  //      i.e. base eyes on full size will be 13 x 5 with sep 24
+  //                  vs OLED eyes as 26,10,22
 
   Serial.println();
   Serial.println(F("DFRobot DFPlayer Mini Demo"));

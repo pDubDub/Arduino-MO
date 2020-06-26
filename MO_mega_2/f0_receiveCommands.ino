@@ -15,12 +15,15 @@ void receiveEvent(int bytes) {                        // called when message rec
 // ERROR FOUND -> accidentally used a single = instead of a double ==
 // TODO - try this again
   
-  if(message.startsWith("play")) {            // decode messages from MO-1 in the form of "play-1" 
+  if (message.startsWith("play") && isAwake) {            
+    // decode messages from MO-1 in the form of "play-1" - but only when awake
     message.remove(0,5);                        // remove "play-"
     int trackInt = message.toInt();             // convert to int
     myDFPlayer.play(trackInt);
-    if (isAwake) {                            // this results in only blinking when awake. Arguably, speak commands should be in here too.
-      eyeState = "blinking";
+    
+    eyeState = "blinking";
+    if (trackInt == 11) {
+        eyeState = "huh";
     }
     // TODO - could make a switch statement here so each sound is matched with its own eye reaction
     

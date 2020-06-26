@@ -47,6 +47,8 @@ void updatePulsingLED() {
   //              FUTURE - pulse BLUE when battery is low
   
   //  using sine wave LED tutorial https://www.sparkfun.com/tutorials/329
+
+  // TODO - I'm not sure. The pulsing red light for power or temp might actually need to go on even if isAwake, no?
   
   if (!isAwake) {             // if isAwake bool false, then he's asleep. turn on sleep strobe.
     sleepStrobeIsOn = true;
