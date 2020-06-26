@@ -103,7 +103,7 @@ void updatePulsingLED() {
      */
      
     currentMillis = millis();
-    wave = wave + (((currentMillis - previousPulseUpdateMillis) / (2.0 *1000)) * 6.283) ;
+    wave = wave + (((currentMillis - previousPulseUpdateMillis) / (2.0 * 1000)) * 6.283) ;
     previousPulseUpdateMillis = currentMillis;
 
     // TODO - for further efficiency, could still pre-calculate the literal value of 6.283/(2.0 * 1000) to elimate math calculations each loop
@@ -123,23 +123,23 @@ void updatePulsingLED() {
   // incidentally, it appear that the current dt for a loop cycle is about 40 millis, or 0.040 seconds (when asleep)
 } // (end 4B)
 
+
 // 4C -- rear panel operation message LED screen
 void updateRearLEDscreen() {
   // currently copying over myThermometer sketch
   // with added milli time check
 
   if (currentMillis - previousLCDMillis >= 1000) {       // 1000 millis = 1 second)
-    // this results in LED code only running once per second
-    // save the last time you updated the LED
-    previousLCDMillis = currentMillis;
-    
-    /* Run through this loop every second.
+    /* Run through this loop once every second.
      * Allows us to update the top line every couple seconds, but still loop through every sec for time display. 
      * 
      * Alternating mesasges on top line, and fixed IMU data on second? (For now)
      */
+     
+    // save the last time you updated the LED
+    previousLCDMillis = currentMillis;
     
-    // insert 3rd message "Ready to Clean!" ?? 
+    // TODO - insert 3rd message "Ready to Clean!" ?? 
   
     lcd.setCursor(0, 0);
     switch(updateLCDframe) {
@@ -153,7 +153,7 @@ void updateRearLEDscreen() {
        case 6:
        case 7:
        case 8:
-         //( INSERT TIME FUNCTION HERE  - "Been Running: TIME" )
+         // TODO - INSERT TIME FUNCTION HERE  - "Been Running: TIME" 
          lcd.print("Runtime:        ");
          break;
        case 9:
@@ -164,7 +164,7 @@ void updateRearLEDscreen() {
          lcd.print(buffer2);
          break;
        case 12:
-         //( INSERT BATTERY MESSAGE HERE - "Main Battery: V" )
+         // TODO - INSERT BATTERY MESSAGE HERE - "Main Battery: V"
          lcd.print("Power Level:    ");
          break;
     }

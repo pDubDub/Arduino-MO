@@ -12,6 +12,7 @@
  *      1 - Input (take operator commands)
  *        A - IR Remote
  *        B - Bluetooth
+ *        C - Read gyro data from IMU 6050 in head (used to keep a level reference for head position)       * new *
  *      2 - MO state and mood  
  *      3 - communicate with Slave Megas
  *      4 - Output
@@ -23,9 +24,6 @@
  *      6 - animation servos (arms, neck, etc)
  *        6A - red siren lamp
  *        
- *        
- *        TODO - Where is reading the IMU 6050?
- *    
  *    
  *    old:
  *      1 - IR Remote

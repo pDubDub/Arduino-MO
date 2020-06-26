@@ -4,8 +4,6 @@
 
 // class definition
 class MoServo {
-
-  // TODO - check for variables that I no longer use.
   
     // would sort of like this to just inherit from Servo, but could not get it to work that way. Yet… TODO
     private:
@@ -21,9 +19,12 @@ class MoServo {
         bool currentlyMoving = false;
         
         // we WILL need vars for current and next millis?
-        unsigned long currentUpdateMillis, millisOfLastMove, startOfMove, durationOfMove;
+        unsigned long startOfMove, durationOfMove;
         int startPosOfMove, distanceOfMove;
         float t;        // used for computing position along easing movement
+
+        // now only appearing in commented out lines:
+//        unsigned long currentUpdateMillis, millisOfLastMove;
         
     public:
         Servo servo;

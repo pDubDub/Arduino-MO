@@ -7,7 +7,9 @@
  *     >> Mega 3 = slave processor, responsible for Ball-Balance Robot, handling M-O's balance and mobility
  *    
  *    Capabilities:
- *      0 - reveive commands & states from Mega-1
+ *      0 - Input
+ *        A - reveive commands & states from Mega-1
+ *        B - read gyro data from IMU 9250 on BBR (used to balance and operate Ball Balance Robot)
  *      1 - blink LED to indicate operation
  *      2 - operate the BBR
  *            - take commands from Master
@@ -22,5 +24,4 @@
  *      If not parked, then balance
  *        and adjust balance to meet movement requests.
  *        
- *        TODO - Where is reading the IMU 9250?
  */

@@ -35,9 +35,6 @@ const long BLINK_INTERVAL = 100;            // interval at which to blink (milli
 float PULSE_WAVELENGTH = 6.283;       // sine wave cycle (6.283 radians is pi*2, or one full cycle)
 float PULSE_PERIOD = 1.50;            // 1.5 seconds is chosen speed  
 
-const int SERVO_THROW = 180;         // how far does servo 1 move                             *4
-    // TODO - this might be unneccesary. We only use this CONST in one place.
-
 //_____________________________________________
 // declare variables
 
@@ -368,19 +365,19 @@ void translateIR() {
         sendToI2CSlave("play-4", 1);   // send command to slave number 1
         break;
       case 0xFF18E7: Serial.println("2");
-        sendToI2CSlave("play-5", 1);   // send command to slave number 1
+        sendToI2CSlave("play-5", 1);        // send command to slave number 1
         break;
       case 0xFF7A85: Serial.println("3");    
-          sendToI2CSlave("play-6", 1);   // send command to slave number 1
+          sendToI2CSlave("play-6", 1);      // send command to slave number 1
           break;
       case 0xFF10EF: Serial.println("4");    
-          sendToI2CSlave("play-7", 1);   // send command to slave number 1
+          sendToI2CSlave("play-7", 1);      // send command to slave number 1
           break;
       case 0xFF38C7: Serial.println("5");    
-          sendToI2CSlave("play-8", 1);   // send command to slave number 1
+          sendToI2CSlave("play-8", 1);      // send command to slave number 1
           break;
       case 0xFF5AA5: Serial.println("6");    
-          sendToI2CSlave("play-9", 1);   // send command to slave number 1
+          sendToI2CSlave("play-9", 1);      // send command to slave number 1
           break;
       case 0xFF42BD: Serial.println("7");    
             sendToI2CSlave("play-10", 1);   // send command to slave number 1
@@ -482,16 +479,16 @@ void readFromBluetooth() {
       } else if (newCommand == "iOSOK") {
         Serial.println(" iOS app has connected via Bluetooth");
         Serial.println((String)" -? Sending isAwake state and \"M-O Connected\" as confirmation back to iOS app");
-        Serial1.write(isAwake ? "awake:1" : "awake:0");            // sending isAwake state… first?  
-            delay(50);                                        // don't really know if this is neccesary, but felt safe
-        Serial1.write("M-O Connected");                   // confirmation to iOS app
+        Serial1.write(isAwake ? "awake:1" : "awake:0");                       // sending isAwake state… first?  
+            delay(50);                                                        // don't really know if this is neccesary, but felt safe
+        Serial1.write("M-O Connected");                                       // confirmation to iOS app
             delay(1000);
-        Serial1.write("ready:1");                        // makes iOS app read "Microbe Obliterator Ready"
+        Serial1.write("ready:1");                                             // makes iOS app read "Microbe Obliterator Ready"
 
         // TODO - noticed that I was originally using Serial1.write() to Bluetoth but have carelessly started using
         //          Serial1.print() …and it doesn't seem to make a functional difference.
       } else if (newCommand.startsWith("A1")) {
-        newCommand.remove(0,3);                     // removes first 3 characters
+        newCommand.remove(0,3);                                               // removes first 3 characters
         servo1.commandTo(newCommand);
       }
       
