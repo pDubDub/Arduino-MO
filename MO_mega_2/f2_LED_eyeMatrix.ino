@@ -9,8 +9,8 @@ void updateEyes() {
   // will read String 'eyeState', perform that animation, and return eyeState to 'none'
 
 
-  if (isAwake && eyeState == "none" && ((millis() - previousEyeMillis) > (nextFlicker * 1000))) {
-    eyeState = "flicker";
+  if (isAwake && eyeState == "none" && ((millis() - previousEyeMillis) > (nextRandomEyeMove * 1000))) {
+    eyeState = "random";
   }
   
   if (eyeState != "none") {                     // This works!
@@ -22,12 +22,12 @@ void updateEyes() {
       blinkingEyes();
     } else if (eyeState == "huh") {             // IR button 8 = track 11 = 'huh'
       huhReaction();
-    } else if (eyeState == "flicker") {
+    } else if (eyeState == "random") {
       halfBlink();                              // this is a random-interval 'bored' reaction. would be nice if there were random reactions to pull from.
     }
     eyeState = "none";
     previousEyeMillis = millis();
-    nextFlicker = (int)random(4,12);
+    nextRandomEyeMove = (int)random(4,12);
   }
 }
 
@@ -75,6 +75,8 @@ void drawEyes(int width, int height, int x, int y, int seperation) {
   display.display();
 }
 
+// TODO - will also need the capability to do expressions with two different eye shapes/sizes at once.
+
 // ********** eye animation sequences:
 void blankScreen() {
   display.clearDisplay();
@@ -112,7 +114,7 @@ void blinkingEyes() {                               // currently used as generic
   drawEyes(baseEyes, 0, 0);
 }
 
-void halfBlink() {                                  // aka flinch, or flicker
+void halfBlink() {                                  // aka flinch, or RandomEyeMove
   drawEyes(squintyEyes, 0, 0);
   drawEyes(baseEyes, 0, 0);
 }

@@ -66,7 +66,7 @@ String message;                             // for received I2C message
   Expression squintyEyes = {30, 6, 22};             // for random 'half-blink'
   Expression wowEyes = {30, 32, 24};
 
-  int nextFlicker = 2;
+  int nextRandomEyeMove = 2;
 
 //_____________________________________________
 // declare objects

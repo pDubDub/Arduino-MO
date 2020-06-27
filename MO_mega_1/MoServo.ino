@@ -21,7 +21,7 @@ class MoServo {
         // we WILL need vars for current and next millis?
         unsigned long startOfMove, durationOfMove;
         int startPosOfMove, distanceOfMove;
-        float t;        // used for computing position along easing movement
+        float elapsedTime;                  // used for computing position along easing movement
 
         // now only appearing in commented out lines:
 //        unsigned long currentUpdateMillis, millisOfLastMove;
@@ -148,14 +148,14 @@ class MoServo {
                  *        if B10 ranges 0 to 1.1 or more, you get a little bit of pass and return (aka bounce)
                  */
 
-                t = (millis() - startOfMove) / (float)durationOfMove;
-                // TODO - might also error check here, to make sure t is not beyond scope of move
+                elapsedTime = (millis() - startOfMove) / (float)durationOfMove;
+                // TODO - might also error check here, to make sure elapsedTime is not beyond scope of move
                 
-//                Serial.print("t = ");
+//                Serial.print("elapsedTime = ");
 //                Serial.print(t);
 //                Serial.print("      computed point on curve = ");
-//                Serial.println((pow(t,2)/(2*(pow(t,2)-t)+1)));
-                int proposedPosition =  distanceOfMove * (pow(t,2)/(2 * (pow(t,2)-t) + 1)) + startPosOfMove;
+//                Serial.println((pow(elapsedTime,2)/(2*(pow(elapsedTime,2)-elapsedTime)+1)));
+                int proposedPosition =  distanceOfMove * (pow(elapsedTime,2)/(2 * (pow(elapsedTime,2)-elapsedTime) + 1)) + startPosOfMove;
 //                Serial.print("proposed position=");
 //                Serial.println(proposedPosition);
                 
