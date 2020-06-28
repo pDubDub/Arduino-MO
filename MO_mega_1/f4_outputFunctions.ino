@@ -138,27 +138,37 @@ void updateRearLEDscreen() {
      * Alternating mesasges on top line, and fixed IMU data on second? (For now)
      */
      
-    // save the last time you updated the LED
-    previousLCDMillis = currentMillis;
-    
-    // TODO - insert 3rd message "Ready to Clean!" ?? 
+    previousLCDMillis = currentMillis;                          // save the last time you updated the LED
+
   
     lcd.setCursor(0, 0);
-    switch(updateLCDframe) {
-            // *** I could actually initialize frame as -5 and put startup messages here that only run at start up
-            //          i.e. Microbe / Obliterator / by Buy-N-Large / Ready to Clean
-      case 0: lcd.print("M-O Bot: on-line"); break;     // all messages 16 char to clear blank spaces
-      case 3: lcd.print("Status:         ");
-        lcd.setCursor(8,0);
-        lcd.print(isAwake ? "Awake   " : "Sleeping"); break;
+    switch(updateLCDframe) {                                    // all messages 16 char to clear blank spaces
+      case -6:                                                  // startup message only runs at startup
+        lcd.print("    Microbe     "); lcd.setCursor(0,1);
+        lcd.print("  Obliterator   "); break;
+      case -3:
+        lcd.print("    Ready to    "); lcd.setCursor(0,1);
+        lcd.print("     Clean      "); break;
+      case 0: 
+        lcd.print("M-O Bot: Online ");lcd.setCursor(0,1);
+        lcd.print("                "); 
+        break;                                            
+      case 3: 
+        lcd.print("Status: "); lcd.print(isAwake ? "Awake   " : "Sleeping"); break;
            // TODO - this line appears twice: once here and also in awakeStateChange 
-       case 6:
-       case 7:
-       case 8:
-         // TODO - INSERT TIME FUNCTION HERE  - "Been Running: TIME" 
-         lcd.print("Runtime:        ");
+      case 6:
+      case 7:
+      case 8:
+        lcd.print("Runtime:        ");                          // left extra spaces here to clear Status messages
+
+        // TIME:
+        seconds = millis() / 1000; minutes = seconds/60; seconds = seconds % 60;
+        
+        lcd.setCursor(9,0); lcd.print(minutes); lcd.print(":");
+        if(seconds < 10) { lcd.print("0"); }
+        lcd.print(seconds);
          break;
-       case 9:
+      case 9:
          //( TEMP FUNCTION lies below, because it still updates constantly for blue strobe )
          sprintf(buffer2,"Int-Temp: %2d.%1d\337F", tempDisp/10,tempDisp%10);
               // format string from https://forum.arduino.cc/index.php?topic=441616.0
@@ -167,7 +177,7 @@ void updateRearLEDscreen() {
          break;
        case 12:
          // TODO - INSERT BATTERY MESSAGE HERE - "Main Battery: V"
-         lcd.print("Power Level:    ");
+         lcd.print("Power Level: TBA");
          break;
     }
   
@@ -177,22 +187,13 @@ void updateRearLEDscreen() {
       updateLCDframe += 1;
     }
        
-   /*    add boolean outsideLCDupdate or cycleLCDnormally that let's outside calls pause this sequence for at least an interval
-   *    when they update the top line
-   */
+   //   TODO - add boolean outsideLCDupdate or cycleLCDnormally that let's outside calls pause this sequence for at least an interval when they update the top line
 
     // TEMP - inspired by tutorial https://www.hacktronics.com/Tutorials/arduino-thermistor-tutorial.html
     tempReading = analogRead(A0);                 
     tempK =  log(((10240000/tempReading) - 10000));
     tempK = 1 / (0.001129148 + (0.000234125 * tempK) + (0.0000000876741 * tempK * tempK * tempK));       //  Temp Kelvin
     tempF = ((tempK - 273.15) * 9.0)/ 5.0 + 32.0; // Convert Celcius to Fahrenheit
-
     tempDisp = tempF * 10;            // converts temp to Int for sprintf function
-
-    // TIME:
-    int t = millis() / 1000;
-    
-    lcd.setCursor(0, 1);
-    lcd.print(t);
   }
 } // end 4C

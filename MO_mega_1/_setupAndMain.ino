@@ -63,7 +63,7 @@ float PULSE_PERIOD = 1.50;            // 1.5 seconds is chosen speed
 //  float dt = 0;
    
   int frame = 0;                            // used to track frame in blink pattern             *2
-  int updateLCDframe = 0;
+  int updateLCDframe = -6;
   
   int pulseBrightnessValue = 0;                   // used for RGB LED                             *4B
 //  int redBrightnessValue = 0;                   // used for RGB LED                             *4B
@@ -76,6 +76,8 @@ float PULSE_PERIOD = 1.50;            // 1.5 seconds is chosen speed
   RGBColor desiredColor = green;          // attempting to make *3 a multicolor pulse
   RGBColor pulseColor = green;
 
+
+
   bool isReady = true;
   bool isAwake = false;       // defines whether MO is sleeping or ready for commands
   bool previousIsAwake = false;
@@ -83,7 +85,9 @@ float PULSE_PERIOD = 1.50;            // 1.5 seconds is chosen speed
   bool sirenOn = false;                     //             *4
   bool sirenDidChange = true;
 
-  int tempReading = 80;                     // used in LCD screen functionality                 *6
+  // 4C - used in LCD screen functionality
+  int seconds, minutes;
+  int tempReading = 80;                     
   double tempK = 0;
   double tempF = 80;
   char buffer2[16];
@@ -141,6 +145,8 @@ void setup() {
   sirenLiftServo.attach(SIREN_LIFT_SERVO);              // attaches the servo on pin x to the servo object
   sirenSpinServo.attach(SIREN_SPIN_CSERVO);             // attach continuous servo on pin x to the servo object
 
+  sirenLiftServo.write(0);                              // makes servo start at 0
+
     // this is a test of MoServo:
   servo1.servo.attach(servo1.pin);                              // TODO - can this be done in constructor?
   servo1.start();
@@ -174,8 +180,8 @@ void setup() {
   //        Then we check IF(isReady) true before sending isReady to other listeners?
   
   isReady = true;                                 // set isReady state and send to listeners
-  lcd.setCursor(0, 0);                      // moved from lcd.begin line above
-  lcd.print("M-O Bot: on-line");           // sends initial message to LCD screen               *6   
+//  lcd.setCursor(0, 0);                      // moved from lcd.begin line above
+//  lcd.print("M-O Bot: on-line");           // sends initial message to LCD screen               *6   
 
   sendMessageToAllListeners("ready:1");
   Serial.println("M-O STARTUP ROUTINE COMPLETE - State: isReady\n");
