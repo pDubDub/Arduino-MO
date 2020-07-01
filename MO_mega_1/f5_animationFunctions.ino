@@ -1,5 +1,11 @@
 
-// 6A --  the Foreign Contaminent red siren light on M-O's head, currently set to trigger via #0 on the IR remote
+/* Here will go functions for
+ *  
+ *    animation (mostly controlling servos, but also the LEDs in the siren lamp)
+ *    
+ */
+ 
+// 5A --  the Foreign Contaminent red siren light on M-O's head, currently set to trigger via #0 on the IR remote
 
 void updateSirenLamp() {
   if (sirenDidChange == true) {     // state change boolean, so these commands only run when there's change, not every loop cycle

@@ -1,3 +1,10 @@
+
+/* Here will go functions for
+ *  
+ *    communicating commands to slave Arduinos over I2C
+ *    
+ */
+
 // 3 - sending I2C commands to other Ardiunos (slaves)
 void sendToI2CSlave(String command, int slave) {
     Wire.beginTransmission(slave);   // transmit to device 1

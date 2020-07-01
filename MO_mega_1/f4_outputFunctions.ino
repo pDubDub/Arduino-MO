@@ -1,3 +1,10 @@
+
+/* Here will go functions for
+ *  
+ *    LED and LCD output
+ *    
+ */
+
 // *4A - blink pattern on internal and external LED
 void blinkRunningLED() {
   // check to see if it's time to blink the LED; 

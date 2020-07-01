@@ -1,8 +1,8 @@
-// I've moved all code to _setup_AND_main
-
-/* Comments:
+/* 
  *  Evolving sketch by Patrick Wheeler, 2020
- *    working on developing the control computer for a replica M-O robot
+ *    Working on developing the control computer for a 3D-printed replica the robot M-O from the film Wall-e
+ *    
+ *    The smarts of the bot will come from 3 Arduino Mega processors:
  *    
  *     >> Mega 1 = master processor, which handles behavior and articulation servos
  *        Mega 2 = slave processor, responsible solely for the LED matric for M-O's eyes
@@ -13,16 +13,14 @@
  *        A - IR Remote
  *        B - Bluetooth
  *        C - Read gyro data from IMU 6050 in head (used to keep a level reference for head position)       * new *
- *      2 - MO state and mood  
+ *      2 - MO state and mood control/logic 
  *      3 - communicate with Slave Megas
  *      4 - Output
  *        A - Internal LED blink pattern
  *        B - RGB Pulse LED
  *        C - rear panel LCD
- *        D - sound playback
- *      5 - manage IMU for head
- *      6 - animation servos (arms, neck, etc)
- *        6A - red siren lamp
+ *      5 - animation servos (arms, neck, etc)
+ *        5A - red siren lamp
  *        
  *    
  *    old:
