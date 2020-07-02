@@ -24,6 +24,8 @@ void receiveEvent(int bytes) {                        // called when message rec
     eyeState = "blinking";
     if (trackInt == 11) {
         eyeState = "huh";
+    } else if (trackInt == 6) {
+        eyeState = "skewed";
     }
     // TODO - could make a switch statement here so each sound is matched with its own eye reaction
     

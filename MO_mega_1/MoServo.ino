@@ -9,6 +9,8 @@ class MoServo {
     private:
         //properties:
         int MIN_POS_MIC, MAX_POS_MIC, INIT_POS_MIC;                  // microseconds
+          // MG90S MIN is 500, MAX is 2500
+          // INIT is the desired startup/neutral position, and may vary from servo to servo. First used was actually 1420.
         
         int lastCommand, currentCommand, nextCommand;                //  microseconds
         int currentPosition;
@@ -52,15 +54,16 @@ class MoServo {
             // perhaps setup commands like initial movement go here, and also attach()???
 //            servo.attach(pin);
             
-            Serial.println("    debug: MoServo object constructed!");
+//            Serial.println("    debug: MoServo object constructed!");
         }
 
-        // TODO - will need a good way, perhaps a method, to center/default the servo. 
-        // The first MG90S that I tested was centered at 1420 microseconds, due to how the arm connects.
+        // FUTURE - it might be nice to be able to redefine the center/default position of the servo while running, rather than having to edit code
+        //    but that will add a deal of complexity to iOS app, so I won't go that way yet.
         
 //        void write(int degrees) {     // this was temp, while getting control working.
 //          servo.write(degrees);
 //        }
+
         void writeMicroseconds(int microseconds) {
           servo.writeMicroseconds(microseconds);
         }

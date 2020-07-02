@@ -148,6 +148,7 @@ void setup() {
   sirenSpinServo.attach(SIREN_SPIN_CSERVO);             // attach continuous servo on pin x to the servo object
 
   sirenLiftServo.write(0);                              // makes servo start at 0
+  sirenSpinServo.writeMicroseconds(1454);               // fine tuned for zero rotation of FS90R c-r servo
 
     // this is a test of MoServo:
   servo1.servo.attach(servo1.pin);                      // TODO - can this be done in constructor?

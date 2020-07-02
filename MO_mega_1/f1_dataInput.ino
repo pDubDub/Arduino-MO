@@ -22,10 +22,6 @@
 // TODO - build an i2C receiver, so that other Megas can send 'query' and Mega-1 will send out important states?
  //     Does iOS app need same? Or does it already have it below in BTListener?
 
-
- // TODO - Fix - Often, the first IR receive 'power' triggers isAwake
- //       But then the 2nd IR 'power' command sends 'wake' again
-
 // *1A - the IR Remote
 void readFromIRRemote() {
   if (irrecv.decode(&results)) {                                // have we received an IR signal?
@@ -197,12 +193,6 @@ void readFromBluetooth() {
         servo1.commandTo(newCommand);
       }
       
-    } 
-   
-  /* how about converting reply to string, 
-   *   and if string is something
-   *   then writeToBLE( a reply );
-   */
-
-  }
+    } // end newcommand.length() IF
+  } // end millis IF
 }

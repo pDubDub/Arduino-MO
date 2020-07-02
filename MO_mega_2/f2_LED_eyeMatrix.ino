@@ -24,7 +24,10 @@ void updateEyes() {
       huhReaction();
     } else if (eyeState == "random") {
       halfBlink();                              // this is a random-interval 'bored' reaction. would be nice if there were random reactions to pull from.
+    } else if (eyeState == "skewed") {          // IR button 3 = track 6 = "yip"
+      skewedPeek();
     }
+    
     eyeState = "none";
     previousEyeMillis = millis();
     nextRandomEyeMove = (int)random(4,12);
@@ -57,6 +60,7 @@ void drawEyes(struct Expression look, int x, int y) {
     delay(60);
 }
 
+// TODO - might want to add a height/thickness value?
 void drawLineWithOffset(int y) {
   display.clearDisplay();
   display.fillRect(0, cent_y + y, display.width(), 4, SSD1306_WHITE);
@@ -66,16 +70,24 @@ void drawLineWithOffset(int y) {
 }
 
 // retained old function, for times when you want to manually code a single frame expression
-void drawEyes(int width, int height, int x, int y, int seperation) {
+void drawEyes(int width, int height, int x, int y, int separation) {
   display.clearDisplay();
   // 0,0 is top left
   // x, y, w, h, radius, color  
-  display.fillRoundRect(cent_x + x - seperation - width/2, cent_y + y - (height / 2), width, height, 2, SSD1306_WHITE);
-  display.fillRoundRect(cent_x + x + seperation - width/2, cent_y + y - (height / 2), width, height, 2, SSD1306_WHITE);
+  display.fillRoundRect(cent_x + x - separation - width/2, cent_y + y - (height / 2), width, height, 2, SSD1306_WHITE);
+  display.fillRoundRect(cent_x + x + separation - width/2, cent_y + y - (height / 2), width, height, 2, SSD1306_WHITE);
   display.display();
 }
 
-// TODO - will also need the capability to do expressions with two different eye shapes/sizes at once.
+
+// for drawing two different eyes shapes. Note L & R are from viewer's perspective, not MO's.
+void drawSkewedEyes(int widthL, int heightL, int widthR, int heightR, int x, int y1, int y2, int separation) {
+  display.clearDisplay();
+  display.fillRoundRect(cent_x + x - separation - widthL/2, cent_y + y1 - (heightL / 2), widthL, heightL, 2, SSD1306_WHITE);
+  display.fillRoundRect(cent_x + x + separation - widthR/2, cent_y + y2 - (heightR / 2), widthR, heightR, 2, SSD1306_WHITE);
+  display.display();
+}
+
 
 // ********** eye animation sequences:
 void blankScreen() {
@@ -125,6 +137,16 @@ void huhReaction() {
   drawEyes(56,4,0,-4,32);
   blankScreen();
   delay(100);
+  drawEyes(baseEyes, 0, 0);
+}
+
+void skewedPeek() {
+  drawEyes(sleepyEyes, 0, 2);
+  delay(60);
+  drawLineWithOffset(0);
+  drawSkewedEyes(26, 26, 26, 8, 0, 0, 4, 18);
+  delay(500);
+  drawEyes(wowEyes, 0, -4);
   drawEyes(baseEyes, 0, 0);
 }
 
