@@ -188,9 +188,10 @@ void readFromBluetooth() {
 
         // TODO - noticed that I was originally using Serial1.write() to Bluetoth but have carelessly started using
         //          Serial1.print() …and it doesn't seem to make a functional difference.
-      } else if (newCommand.startsWith("A1")) {
+        
+      } else if (newCommand.startsWith("A1")) {                               // first implementation of iOS moving a servo
         newCommand.remove(0,3);                                               // removes first 3 characters
-        servo1.commandTo(newCommand);
+        servo1.commandTo(newCommand, 800);                                    // now accepts a duration in microseconds
       }
       
     } // end newcommand.length() IF

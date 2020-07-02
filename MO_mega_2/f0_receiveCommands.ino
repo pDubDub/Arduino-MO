@@ -63,8 +63,11 @@ void receiveEvent(int bytes) {                        // called when message rec
       }
     }
   } else if (message == "speak") {
-    myDFPlayer.play((int)random(5,13));
+    myDFPlayer.play((int)random(5,12));
+    // TODO - this random play command goes around the normal flow which results in matching eye reactions.
+    
 //    blinkEyes();
+    eyeState = "blinking";
 
   } else if (message == "ready:1") {
     isReady = true;

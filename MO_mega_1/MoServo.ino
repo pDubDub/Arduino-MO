@@ -21,8 +21,9 @@ class MoServo {
         bool currentlyMoving = false;
         
         // we WILL need vars for current and next millis?
-        unsigned long startOfMove, durationOfMove;
+        unsigned long startOfMove, durationOfMove = 1000.0;
         int startPosOfMove, distanceOfMove;
+        int newDuration, nextDuration;
         float elapsedTime;                  // used for computing position along easing movement
 
         // now only appearing in commented out lines:
@@ -76,21 +77,39 @@ class MoServo {
         // 2 versions of commandTo, one that accepts int, and one that accepts String
         void commandTo(int degrees) {
           newCommand = map(degrees, 0, 180, 2500, 500);
+          newDuration = 1000;                                             // default duration
         }
 
-        void commandTo(String degreeString) {
-          newCommand = map(degreeString.toInt(), 0, 180, 2500, 500);
+        void commandTo(String degreeString) {                             // this is implemented method to move moServo objects.
+          newCommand = map(degreeString.toInt(), 0, 180, 2400, 500);      // left-limit was 2500, but found it was clipping the end of moves. (i.e. no distinction 0-10 degrees)
+          newDuration = 1000;
         }
-        
+
+        // 3rd version now accepts a duration too.
+        void commandTo(String degreeString, int duration) {
+          newCommand = map(degreeString.toInt(), 0, 180, 2400, 500);
+          newDuration = duration;
+        }
+
+                    // TODO - we now accept durationOfMove as a parameter, or default it to 1 sec if not specified.
+                    //   Now make class a little smart, and if the move is notably shorter, shorten this value dynamically.
+
+                    // in fact, what might be nice, is a nice gentle (possibly randomized) duration, but…
+                    //        IF distance is short, then timer randomly shortens
+                    //        IF ∆t between commands is shorter, then durationOfMove shortens?
+                    
         void updateServo() {
             // set currentCommand and nextCommand
             if (newCommand != lastCommand) {                // have we received a newCommand
 //                Serial.print("New command received. ");
                 if (currentlyMoving) {
                     nextCommand = newCommand;
+                    nextDuration = newDuration;
                 } else {
                     currentCommand = newCommand;
+                    durationOfMove = (long)newDuration;
                     nextCommand = newCommand;
+                    nextDuration = newDuration;
                 }
 
 //                Serial.print("Current position = ");
@@ -114,6 +133,7 @@ class MoServo {
 //                servo.write(-currentPosition);
                 currentlyMoving = false;
                 currentCommand = nextCommand;
+                durationOfMove = (long)nextDuration;
 
                     // TODO - where is state = starting?
                     
@@ -123,14 +143,10 @@ class MoServo {
                   startOfMove = millis();
 //                  Serial.println("starting");
                   // set duration (we can use this later to change duration on command, yes?
-                  durationOfMove = 1000.0;
+//                  durationOfMove = 1000.0;
                     // THIS WORKS!
-                    // TODO - we could now either accept durationOfMove as a parameter,
-                    //   or make class a little smart, and if the move is notably shorter, we could shorten this value dynamically
+                    
 
-                    // in fact, what might be nice, is a nice gentle (possibly randomized) duration, but…
-                    //        IF distance is short, then timer randomly shortens
-                    //        IF ∆t between commands is shorter, then durationOfMove shortens?
                   
                   startPosOfMove = currentPosition;
                   distanceOfMove = currentCommand - currentPosition;
