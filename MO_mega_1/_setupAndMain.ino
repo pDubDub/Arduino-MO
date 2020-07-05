@@ -3,7 +3,7 @@
 #include "IRremote.h"                               // *Capability 1A
 #include <LiquidCrystal.h>                          // *4C
 #include <Servo.h>                                  // *5
-#include <Wire.h>                                   // *3 - for I2C communication to slave Arduinos
+#include <Wire.h>                                   // *1,3 - for I2C communication to slave Arduinos & mpu6050
 
 //_____________________________________________
 // declare constants (for pin numbers)
@@ -54,10 +54,21 @@ float PULSE_PERIOD = 1.50;            // 1.5 seconds is chosen speed
   unsigned long previousBlinkLEDMillis = 0;                               // 4A - last running LED update
   unsigned long previousPulseUpdateMillis = 0;                            // 4B - pulsing LED
   unsigned long previousLCDMillis = 0;      // similar function for LCD screen                  *4
-  unsigned long i2Ctimer = 0;                       // 3 - millis timer for demonstration i2c functionality
+//  unsigned long i2Ctimer = 0;                       // 3 - millis timer for demonstration i2c functionality
   unsigned long previousTestServoMillis = 0;
+
+  // mpu6050:
+  const int mpu6050Address = 0x68; // MPU6050 I2C address
+  float AccX, AccY, AccZ;
+  float GyroX, GyroY, GyroZ;
+  float accAngleX, accAngleY, gyroAngleX, gyroAngleY, gyroAngleZ;
+  float roll, pitch, yaw;
+  float mpu6050temperatureReading;
+  float AccErrorX, AccErrorY, GyroErrorX, GyroErrorY, GyroErrorZ;
+  float elapsedTime6050, currentTime6050, previousTime6050;
+  int errorSamples = 0;
    
-  int frame = 0;                            // used to track frame in blink pattern             *2
+  int frame = 0;                            // used to track frame in blink pattern             *4
   int updateLCDframe = -6;
   
   int pulseBrightnessValue = 0;                   // used for pulsing green RGB LED              *4B
@@ -125,6 +136,13 @@ void setup() {
     // I think I could put the Wire.onReceive(receiveEvent) here, and then slaves can message the master too
   Serial.println("I2C communication enabled.");           // dummy message, eventually needing conditional
 
+  // mpu6050 setup:
+  Wire.beginTransmission(mpu6050Address);       // Start communication with MPU6050 // MPU=0x68
+  Wire.write(0x6B);                             // Talk to the register 6B
+  Wire.write(0x00);                             // Make reset - place a 0 into the 6B register
+  Wire.endTransmission(true);                   // end the transmission
+  
+
   //  isReady = false;
   //  isAwake = false;
   //  isCompact = true;
@@ -176,6 +194,9 @@ void setup() {
   //        And if any setup steps fail, we set it to false.
   //
   //        Then we check IF(isReady) true before sending isReady to other listeners?
+
+  calculate_IMU_error();                          // moved mpu6050 calibration to end of setup to observe difference.
+  delay(20);
   
   isReady = true;                                 // set isReady state and send to listeners
   sendMessageToAllListeners("ready:1");
@@ -192,6 +213,9 @@ void loop() {
 
   // 1B - Bluetooth control
   readFromBluetooth();
+
+  // 1C - read mpu6050 gyro
+  read6050imu();
   
   // *4A - blink pattern on internal and external LED
   blinkRunningLED();

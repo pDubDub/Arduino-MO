@@ -13,6 +13,7 @@
  *        A - IR Remote
  *        B - Bluetooth
  *        C - Read gyro data from IMU 6050 in head (used to keep a level reference for head position)       * new *
+ *              ( code developed & tested in "howTo_6050_May2020" sketch )
  *      2 - MO state and mood control/logic 
  *      3 - communicate with Slave Megas
  *      4 - Output
