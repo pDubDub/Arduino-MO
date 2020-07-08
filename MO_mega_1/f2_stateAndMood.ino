@@ -18,6 +18,8 @@ void toggleAwakeState() {
   } else { 
     message2send = "awake:0";
     sleepStrobeIsOn = true;
+    wave = 4.712;                                       // these two statements added to assure pulsing starts from off
+    previousPulseUpdateMillis = millis();
   }
   sendToI2CSlave(message2send, 1);
     // FUTURE - also send to slave 2

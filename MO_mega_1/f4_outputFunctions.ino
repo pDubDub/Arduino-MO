@@ -5,7 +5,7 @@
  *    
  */
 
-// *4A - blink pattern on internal and external LED
+// *4A --------------------------- blink pattern on internal and external LED ---------------------------
 void blinkRunningLED() {
   // check to see if it's time to blink the LED; 
           // meaning, is the difference between the current time and last time you blinked the LED
@@ -47,7 +47,7 @@ void blinkRunningLED() {
 } // end of blinkRunningLED()
 
 
-// *4B - causes the RGB LED to pulse green only if bot is in sleep mode
+// *4B --------------------------- causes the RGB LED to pulse green only if bot is in sleep mode ---------------------------
 void updatePulsingLED() {
   //    ** RGB LED pulses Green when Asleep
   //              pulses RED when internal temp is high
@@ -62,9 +62,10 @@ void updatePulsingLED() {
     sleepStrobeIsOn = true;
     wave = 4.712;                                 // the bottom of the wave   
     previousPulseUpdateMillis = millis();
+    Serial.println(" \n ------------- strobe on ----");
 
-    // TODO - Fix, for some reason, wave is initialized as 4.712, but immediately changes to 0
-    //   I think this may also cause the pulse strobe to start at bright when it turns on upon going to sleep
+    // TODO - This condition never actually triggers, as updatePulsingLED() is not called until sleepStrobeIsOn == true.
+    //    So it might deserve deletion.
 
     
   } else if (isAwake && pulseBrightnessValue < 1) {    // this should stop strobe only at bottom
@@ -84,7 +85,7 @@ void updatePulsingLED() {
   if (sleepStrobeIsOn) {      // strobe runs green LED while M-O is ON but sleeping
     // set brightness      
     pulseBrightnessValue = sin(wave) * (pulseMaxBrightness/2) + (pulseMaxBrightness/2);   // replaced 127.5 with variable to define amplitude of wave
-    Serial.println(wave);
+//    Serial.println(wave);
     if(pulseColor == red) {
       analogWrite(RGB_LED_RED, pulseBrightnessValue);
     } else {
@@ -117,6 +118,11 @@ void updatePulsingLED() {
      *      This ends up working smoothly, and now the period value seems to be faithfully reproduced.           
      */
      
+    // this fixes a startup condition where pulse does not ease in, because (currentMillis - previousPulseUpdateMillis) is too great
+    if ( previousPulseUpdateMillis == 0 ) {                         
+      previousPulseUpdateMillis = millis();
+    }
+    
     currentMillis = millis();
     wave = wave + (((currentMillis - previousPulseUpdateMillis) / (2.0 * 1000)) * 6.283) ;
     previousPulseUpdateMillis = currentMillis;
@@ -139,7 +145,7 @@ void updatePulsingLED() {
 } // (end 4B)
 
 
-// 4C -- rear panel operation message LED screen
+// 4C --------------------------- rear panel operation message LED screen ---------------------------
 void updateRearLEDscreen() {
   // currently copying over myThermometer sketch
   // with added milli time check
