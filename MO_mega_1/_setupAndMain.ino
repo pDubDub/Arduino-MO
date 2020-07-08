@@ -63,7 +63,7 @@ float PULSE_PERIOD = 1.50;            // 1.5 seconds is chosen speed
   float GyroX, GyroY, GyroZ;
   float accAngleX, accAngleY, gyroAngleX, gyroAngleY, gyroAngleZ;
   float roll, pitch, yaw;
-  float mpu6050temperatureReading;
+  float mpu6050Temperature;
   float AccErrorX, AccErrorY, GyroErrorX, GyroErrorY, GyroErrorZ;
   float elapsedTime6050, currentTime6050, previousTime6050;
   int errorSamples = 0;
@@ -87,11 +87,11 @@ float PULSE_PERIOD = 1.50;            // 1.5 seconds is chosen speed
 
   // 4C - used in LCD screen functionality
   int seconds, minutes;
-  int tempReading = 80;                     
-  double tempK = 0;
-  double tempF = 80;
+//  int tempReading = 80;                     
+//  double tempK = 0;
+//  double tempF = 80;
   char buffer2[16];
-  int tempDisp = 800;
+//  int tempDisp = 800;
 
 //_____________________________________________
 // declare objects

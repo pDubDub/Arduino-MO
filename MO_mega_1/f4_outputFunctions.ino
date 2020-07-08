@@ -56,19 +56,24 @@ void updatePulsingLED() {
   //  using sine wave LED tutorial https://www.sparkfun.com/tutorials/329
 
   // TODO - I'm not sure. The pulsing red light for power or temp might actually need to go on even if isAwake, no?
-  
-  if (!isAwake) {             // if isAwake bool false, then he's asleep. turn on sleep strobe.
-    sleepStrobeIsOn = true;
-//    Serial.println("sleep strobe on");
 
-    // TODO - this if else is running every loop. But should only run on changes.
+  // TODO - this if else is running every loop. But should only run on changes.
+  if (!sleepStrobeIsOn && !isAwake) {             // if isAwake bool false, then he's asleep. turn on sleep strobe.
+    sleepStrobeIsOn = true;
+    wave = 4.712;                                 // the bottom of the wave   
+    previousPulseUpdateMillis = millis();
+
+    // TODO - Fix, for some reason, wave is initialized as 4.712, but immediately changes to 0
+    //   I think this may also cause the pulse strobe to start at bright when it turns on upon going to sleep
+
+    
   } else if (isAwake && pulseBrightnessValue < 1) {    // this should stop strobe only at bottom
     sleepStrobeIsOn = false;
   }
 
   // changing pulse color to red if tempF above 84
   //  **  LATER we can use this to indicate low system battery or batteries **
-  desiredColor = tempF > 84 ? red : green;           // This works. 
+  desiredColor = mpu6050Temperature > 84 ? red : green;           // This works. 
   // For some reason, using pins 9 or 10 would freeze sketch, so RGB now on 7, 8 & 11
 
   if ((pulseBrightnessValue < 1 ) && (pulseColor != desiredColor)) {    // should change pulse color only at bottom
@@ -79,6 +84,7 @@ void updatePulsingLED() {
   if (sleepStrobeIsOn) {      // strobe runs green LED while M-O is ON but sleeping
     // set brightness      
     pulseBrightnessValue = sin(wave) * (pulseMaxBrightness/2) + (pulseMaxBrightness/2);   // replaced 127.5 with variable to define amplitude of wave
+    Serial.println(wave);
     if(pulseColor == red) {
       analogWrite(RGB_LED_RED, pulseBrightnessValue);
     } else {
@@ -146,7 +152,6 @@ void updateRearLEDscreen() {
      */
      
     previousLCDMillis = currentMillis;                          // save the last time you updated the LED
-
   
     lcd.setCursor(0, 0);
     switch(updateLCDframe) {                                    // all messages 16 char to clear blank spaces
@@ -176,12 +181,17 @@ void updateRearLEDscreen() {
         lcd.print(seconds);
          break;
       case 9:
+        // this now pulls temp from mpu6050 instead of thermister
+        dtostrf(mpu6050Temperature, 4, 1, buffer2);                   // data to String
+        // DONE - pulsing strobe red color logic needs to pull from mpu6050Temperature now instead of thermister
+        
          //( TEMP FUNCTION lies below, because it still updates constantly for blue strobe )
-         sprintf(buffer2,"Int-Temp: %2d.%1d\337F", tempDisp/10,tempDisp%10);
+
+         // old format:
+//         sprintf(buffer2,"Int-Temp: %3d\337F", mpu6050Temperature);
               // format string from https://forum.arduino.cc/index.php?topic=441616.0
               // "\337" is code for degree character
-         lcd.print(buffer2);
-         break;
+         lcd.print("Int-Temp: "); lcd.print(buffer2); lcd.print("\337F"); break;
        case 12:
          // TODO - INSERT BATTERY MESSAGE HERE - "Main Battery: V"
          lcd.print("Power Level: TBA");
@@ -197,10 +207,10 @@ void updateRearLEDscreen() {
    //   TODO - add boolean outsideLCDupdate or cycleLCDnormally that let's outside calls pause this sequence for at least an interval when they update the top line
 
     // TEMP - inspired by tutorial https://www.hacktronics.com/Tutorials/arduino-thermistor-tutorial.html
-    tempReading = analogRead(A0);                 
-    tempK =  log(((10240000/tempReading) - 10000));
-    tempK = 1 / (0.001129148 + (0.000234125 * tempK) + (0.0000000876741 * tempK * tempK * tempK));       //  Temp Kelvin
-    tempF = ((tempK - 273.15) * 9.0)/ 5.0 + 32.0; // Convert Celcius to Fahrenheit
-    tempDisp = tempF * 10;            // converts temp to Int for sprintf function
+//    tempReading = analogRead(A0);                 
+//    tempK =  log(((10240000/tempReading) - 10000));
+//    tempK = 1 / (0.001129148 + (0.000234125 * tempK) + (0.0000000876741 * tempK * tempK * tempK));       //  Temp Kelvin
+//    tempF = ((tempK - 273.15) * 9.0)/ 5.0 + 32.0; // Convert Celcius to Fahrenheit
+//    tempDisp = tempF * 10;            // converts temp to Int for sprintf function
   }
 } // end 4C

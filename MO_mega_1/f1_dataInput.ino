@@ -259,9 +259,9 @@ void read6050imu() {
 
   // pulled funcitonality from sketch "jun30_tempFrom6050
   //   changed 2nd parameter in .requestFrom() line above from 6 to 8 to get temp data
-  mpu6050temperatureReading = Wire.read()<<8 | Wire.read(); // reading registers: 0x41 (TEMP_OUT_H) and 0x42 (TEMP_OUT_L)
-  mpu6050temperatureReading = (mpu6050temperatureReading / 340.00 + 36.53) * 9/5 +32 -3.4; // -3.4 is my manual calibration
-//  Serial.print("temp deg F: "); Serial.print(mpu6050temperatureReading);
+  mpu6050Temperature = Wire.read()<<8 | Wire.read(); // reading registers: 0x41 (TEMP_OUT_H) and 0x42 (TEMP_OUT_L)
+  mpu6050Temperature = (mpu6050Temperature / 340.00 + 36.53) * 9/5 +32 -3.4; // -3.4 is my manual calibration
+//  Serial.print("temp deg F: "); Serial.print(mpu6050Temperature);
   
   // Calculating Roll and Pitch from the accelerometer data
   accAngleX = (atan(AccY / sqrt(pow(AccX, 2) + pow(AccZ, 2))) * 180 / PI) - AccErrorX; // AccErrorX ~(0.45) See the calculate_IMU_error()custom function for more details
