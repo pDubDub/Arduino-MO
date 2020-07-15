@@ -72,9 +72,9 @@ void updatePulsingLED() {
     sleepStrobeIsOn = false;
   }
 
-  // changing pulse color to red if tempF above 84
+  // changing pulse color to red if tempF above 90
   //  **  LATER we can use this to indicate low system battery or batteries **
-  desiredColor = mpu6050Temperature > 84 ? red : green;           // This works. 
+  desiredColor = mpu6050Temperature > 90 ? red : green;           // This works. 
   // For some reason, using pins 9 or 10 would freeze sketch, so RGB now on 7, 8 & 11
 
   if ((pulseBrightnessValue < 1 ) && (pulseColor != desiredColor)) {    // should change pulse color only at bottom
@@ -209,7 +209,18 @@ void updateRearLEDscreen() {
     } else { 
       updateLCDframe += 1;
     }
-       
+
+    // added functionality to print IMU pitch/roll to lower line
+    if (updateLCDframe >= 0) {
+      lcd.setCursor(1, 1);
+      lcd.print(pitch >= 0 ? "p: " : "p:");
+      lcd.print(pitch); 
+      lcd.setCursor(8, 1);
+      lcd.print(roll >= 0 ? " r: " : " r:");
+      lcd.print(roll);
+    }
+
+    
    //   TODO - add boolean outsideLCDupdate or cycleLCDnormally that let's outside calls pause this sequence for at least an interval when they update the top line
 
     // TEMP - inspired by tutorial https://www.hacktronics.com/Tutorials/arduino-thermistor-tutorial.html

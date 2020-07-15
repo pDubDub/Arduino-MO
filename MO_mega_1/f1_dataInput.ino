@@ -36,6 +36,10 @@ void translateIR() {
       // this function was taken from tutorial for IR Remote
 
   // TODO - IR signals should change a botState variable, and behaviors like LCD or siren servos should be handled elsewhere based on botState
+
+      // TODO - because emotes can be triggered from IR, iOS or even other emotes, or even random reactions,
+      //   each IF or CASE should trigger a behavior that should live in f2_stateAndMood
+      //   Not here.
       
   currentMillis = millis();                 // gets current time
   if (currentMillis - previousIRMillis >= 500) {         // only runs loop 0.5 seconds after last time, replacing old delay(500) statement
@@ -107,7 +111,7 @@ void sendBTCommand(const char * command) {
     i += 1;
   }
   reply[i] = '\0';   //end the string
-  Serial.println((String)"Message \"" + reply + "\" received from AT-09");
+  Serial.println((String)"AT-09 received message: " + reply );
 //  Serial.println(reply);
   // Serial.println("Reply: successful");
 
@@ -155,33 +159,62 @@ void readFromBluetooth() {
 //      Serial.println(newCommand);
       // lastCommand = newCommand;
       // lastCommand variable is for detecting change, so we would only scan switch if it's a new command
-      if(newCommand == "Hello World!") {
-        Serial.println(" Replying \"Hello\" to iOS App to confirm comms functionality.");
-        Serial1.write("M-O says Hello");        // send text back to M-O BLE app on iPhone
-      } else if (newCommand == "M-O") {
-        Serial1.write("M-O says Mo");
-        sendToI2CSlave("play-4", 1);
-      } else if (newCommand == "Yip") {
-        Serial1.write("M-O says Yip");
-        sendToI2CSlave("play-6", 1);
-      } else if (newCommand == "speak") {
-        sendToI2CSlave("speak", 1);
-      } else if (newCommand == "sleep") {
-        toggleAwakeState();                    // TODO - does this work, just toggling, or can I reach a state where sleep on app is triggering wake here?
-      } else if (newCommand == "wake") {
-        toggleAwakeState();
-      } else if (newCommand == "iOSOK") {
+
+      // TODO - because emotes can be triggered from IR, iOS or even other emotes, or even random reactions,
+      //   each IF or CASE should trigger a behavior that should live in f2_stateAndMood
+      //   Not here.
+
+
+      
+      if (newCommand == "iOSOK") {
         Serial.println(" iOS app has connected via Bluetooth");
-        Serial.println((String)" -? Sending isAwake state and \"M-O Connected\" as confirmation back to iOS app");
+        Serial.println((String)" - Sending isAwake state and \"M-O Connected\" as confirmation back to iOS app");
         Serial1.write(isAwake ? "awake:1" : "awake:0");                       // sending isAwake state… first?  
-            delay(50);                                                        // don't really know if this is neccesary, but felt safe
+            delay(50);                                                        // don't really know if delay is neccesary, but felt safe
         Serial1.write("M-O Connected");                                       // confirmation to iOS app
             delay(1000);
         Serial1.write("ready:1");                                             // makes iOS app read "Microbe Obliterator Ready"
 
-        // TODO - noticed that I was originally using Serial1.write() to Bluetoth but have carelessly started using
-        //          Serial1.print() …and it doesn't seem to make a functional difference.
+        // Noticed that Bluetooth tutorial was originally using Serial1.print() 
+        //    but have carelessly started using Serial.write()
+        //    I've read that Serial1.print() is more intended to accept strings, whereas Serial1.write() is more geared towards 
+        //    characters and numbers, but as I'm sending strings, it doesn't make a functional difference.
         
+      } else if (newCommand == "sleep" || newCommand == "awake:0") {
+        toggleAwakeState();                    // TODO - does this work, just toggling, or can I reach a state where sleep on app is triggering wake here?
+      } else if (newCommand == "wake" || newCommand == "awake:1") {
+        toggleAwakeState();
+      } else if (newCommand == "Hello World!") {
+        Serial.println(" Replying \"Hello\" to iOS App to confirm comms functionality.");
+        Serial1.write("M-O says Hello");        // send text back to M-O BLE app on iPhone
+
+        // TODO - maybe this command calls a function that doesn't just say "Hello" on iOS screen, but resends state messages (isAsleep, etc) to all 3 'slaves.'
+        
+      } else if (newCommand == "M-O") {
+        Serial1.write("M-O says Mo");
+        sendToI2CSlave("play-4", 1);
+
+        // TODO - starting here, instead of sending play command, we should send emote string message,
+        //   and have MO-2 hear "emo:MO" and then play the "MO" emote, which will have both eyes and sound
+        //   and use same model the rest of the way down
+        
+      } else if (newCommand == "Yip") {
+        Serial1.write("M-O says Yip");
+        sendToI2CSlave("play-6", 1);
+      } else if (newCommand == "Huh") {
+        sendToI2CSlave("play-11", 1);
+      } else if (newCommand == "speak") {
+        sendToI2CSlave("speak", 1);
+      } else if (newCommand == "scan") {
+        // the scan command should trigger sound
+      } else if (newCommand == "dirty") {
+        // the dirty command should trigger the foreigh contaminant sound
+      } else if (newCommand == "clean") {
+        // the clean command should trigger the all clean sound
+      } else if (newCommand == "siren:0") {
+        // the siren:0 and siren:1 commands should toggle the siren light  
+     
+
       } else if (newCommand.startsWith("A1")) {                               // first implementation of iOS moving a servo
         newCommand.remove(0,3);                                               // removes first 3 characters
         servo1.commandTo(newCommand, 800);                                    // now accepts a duration in microseconds
@@ -233,16 +266,16 @@ void calculate_IMU_error() {
   GyroErrorY = GyroErrorY / 200;
   GyroErrorZ = GyroErrorZ / 200;
   // Print the error values on the Serial Monitor
-  Serial.println("*********************************************************************");
-  Serial.print("AccErrorX: ");
+  Serial.println("\n Calculating IMU 6050 error:");
+  Serial.print("  AccErrorX: ");
   Serial.println(AccErrorX);
-  Serial.print("AccErrorY: ");
+  Serial.print("  AccErrorY: ");
   Serial.println(AccErrorY);
-  Serial.print("GyroErrorX: ");
+  Serial.print("  GyroErrorX: ");
   Serial.println(GyroErrorX);
-  Serial.print("GyroErrorY: ");
+  Serial.print("  GyroErrorY: ");
   Serial.println(GyroErrorY);
-  Serial.print("GyroErrorZ: ");
+  Serial.print("  GyroErrorZ: ");
   Serial.println(GyroErrorZ);
 }
 

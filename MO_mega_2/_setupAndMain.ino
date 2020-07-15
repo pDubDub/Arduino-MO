@@ -153,17 +153,3 @@ void loop() {
     //  These behaviors might themselves finish by changing the state, resulting in followup behaviors.
 
 } // end main LOOP
-
-void awakeStateTo(bool state) {
-  isAwake = state;
-  stateDidChange = true;
-//  updateEyes();
-  if (isAwake) {
-    Serial.println("wake eyes");
-    eyeState = "waking";
-  } else {
-    Serial.println("sleep eyes");
-//    sleepEyes();
-    eyeState = "sleeping";
-  }
-}

@@ -119,28 +119,32 @@ void setup() {
   Serial.begin(9600);         // this used to be 11520. don't know why. changed it to 9600
 
   Serial.println("\nMICROBE OBLITERATOR STARTUP ROUTINE INITIATED");
-  Serial.println("IR Receiver Button Decode");            // for IRremote                     *1
-  irrecv.enableIRIn(); // Start the receiver              // for IRremote                     *
+
+  // for IR Remote *1
+  irrecv.enableIRIn();  // Start the receiver
+  Serial.println("    IR Receiver Decode enabled.");
 
   // 1B - Bluetooth
+  Serial.println("    Configuring Bluetooth communication:");
   Serial1.begin(9600);
   sendBTCommand("AT");                  // calls sendBTCommand function to setup the BlueTooth module from Arduino
   sendBTCommand("AT+ROLE0");            // makes AT-09 BT module a peripheral
   sendBTCommand("AT+UUID0xFFE0");
   sendBTCommand("AT+CHAR0xFFE1");
   sendBTCommand("AT+NAMEM-O");
-  Serial.println("IR and BT communication enabled.");     // dummy message, eventually needing conditional
+  Serial.println("    Bluetooth communication enabled.");     // dummy message, eventually needing conditional
 
   // confirm i2c communication
   Wire.begin(0);                                          // 3 - starts I2C communication as Master to slaves
     // I think I could put the Wire.onReceive(receiveEvent) here, and then slaves can message the master too
-  Serial.println("I2C communication enabled.");           // dummy message, eventually needing conditional
+  Serial.println("    I2C communication enabled.");           // dummy message, eventually needing conditional
 
   // mpu6050 setup:
   Wire.beginTransmission(mpu6050Address);       // Start communication with MPU6050 // MPU=0x68
   Wire.write(0x6B);                             // Talk to the register 6B
   Wire.write(0x00);                             // Make reset - place a 0 into the 6B register
   Wire.endTransmission(true);                   // end the transmission
+  Serial.println("    MPU 6050 gyro/accelerometer enabled.");
   
 
   //  isReady = false;

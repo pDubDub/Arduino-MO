@@ -17,7 +17,7 @@
  *      2 - MO state and mood control/logic 
  *      3 - communicate with Slave Megas
  *      4 - Output
- *        A - Internal LED blink pattern
+ *        A - Internal LED blink pattern (later to also be on external rear-panel LED)
  *        B - RGB Pulse LED
  *        C - rear panel LCD
  *      5 - animation servos (arms, neck, etc)

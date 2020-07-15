@@ -5,10 +5,17 @@
  *    
  */
 
+ 
+      // Because emotes can be triggered from IR, iOS or even other emotes, or even random reactions,
+      //   each IF or CASE in IR or BT on page f1 should trigger a behavior that should live here in f2_stateAndMood
+      //   .
+      
+
 void toggleAwakeState() {
   isAwake = !isAwake;
 
   Serial.println("");
+  Serial.println("*********************************************************************");
   Serial.print("M-O isAwake toggled to ");
   Serial.println(isAwake ? "Awake" : "Asleep");
   
@@ -20,6 +27,12 @@ void toggleAwakeState() {
     sleepStrobeIsOn = true;
     wave = 4.712;                                       // these two statements added to assure pulsing starts from off
     previousPulseUpdateMillis = millis();
+
+    // EXPERIMENT: can I recalibrate IMU when we go to sleep
+    calculate_IMU_error();
+    // In practice, we would likely want to wait until he had time to compact and settle before doing this, if it works at all.
+    //   Possibly, before waking up too?
+    
   }
   sendToI2CSlave(message2send, 1);
     // FUTURE - also send to slave 2

@@ -14,6 +14,8 @@ void receiveEvent(int bytes) {                        // called when message rec
 // BUG - this IF was preventing sound files from playing.
 // ERROR FOUND -> accidentally used a single = instead of a double ==
 // TODO - try this again
+
+  // TODO - rebuild sequence below. Put in proper order. Start to accept "emo:" messages and route them to state functions.
   
   if (message.startsWith("play") && isAwake) {            
     // decode messages from MO-1 in the form of "play-1" - but only when awake
@@ -47,7 +49,7 @@ void receiveEvent(int bytes) {                        // called when message rec
       if (isReady) {                                            // to only snore if isReady operational
         Serial.println("I2C message says MO is asleep");
 //        isAwake = false;
-        myDFPlayer.play(3);                     // play the snore  track 3
+        myDFPlayer.play(3);                                     // play the snore  track 3
         // TODO - eventually spin this off into a whole "sleeping" behavior funcion, which includes random time interval triggered snore sound.
       }
     } else if (message == "1") {
@@ -75,6 +77,8 @@ void receiveEvent(int bytes) {                        // called when message rec
     // TODO - these statement should enact local state changes too
   } else if (message == "ready:0") {
     isReady = false;
+
+    // TODO - if we're not ready, isn't he also by default not awake?
   }
   // TODO - implement listening for sirenState message
   // TODO - this section needs cleaning up
