@@ -4,9 +4,9 @@
 #include <LiquidCrystal.h>                          // *4C
 #include <Servo.h>                                  // *5
 #include <Wire.h>                                   // *1,3 - for I2C communication to slave Arduinos & mpu6050
+#include <Adafruit_PWMServoDriver.h>                // f5 - for 16-channel I2C Servo Driver
 
-//_____________________________________________
-// declare constants (for pin numbers)
+//____________________ declare constants (for pin numbers) ____________________
 
   // pin 2 reserved for INT on MPU-6050 IMU                                                     *1
   const int IR_RECEIVER = 3;            // Signal Pin of IR receiver to Arduino Digital Pin 3   *1A
@@ -15,28 +15,24 @@
   const int SIREN_SPIN_CSERVO = 6;                                                      //      *5A
   
   const int RGB_LED_RED = 7;               // define the RGB LED pins                           *4B
+    // Something in this code causes a crash when using RGB_RED on pin 9 or 10
+    // Pins are fine when used in "debugging_RGB_LED" sketch
   const int RGB_LED_GREEN = 8;
   const int RGB_LED_BLUE = 11;
 
   const int A_SERVO = 44;               // this is a test servo, trying to control from iOS
 
-    // SOMETHING in this code causes a crash when using RGB_RED on pin 10
-    // ALSO couldn't make things work on pin 9
-    // pins are fine in debugging_RGB_LED sketch
+//____________________ declare other constants ____________________
 
-//_____________________________________________
-// declare other constants
-const long BLINK_INTERVAL = 100;            // interval at which to blink (milliseconds)         *4A
+  const long BLINK_INTERVAL = 100;            // interval at which to blink (milliseconds)         *4A
                                             // making this smaller, makes blink pattern faster
 
-  // these values determine the speed of sine wave LED cycle                                     *4
-  // used to use a constant increment of 0.001 for each loop cycle
-  // now we compute based on dt interval since last loop cycle
-float PULSE_WAVELENGTH = 6.283;       // sine wave cycle (6.283 radians is pi*2, or one full cycle)
-float PULSE_PERIOD = 1.50;            // 1.5 seconds is chosen speed  
+  // These values determine the speed of sine wave LED cycle.                                     *4
+  // Used to use a constant increment of 0.001 for each loop cycle. Now we compute based on dt interval since last loop cycle.
+  float PULSE_WAVELENGTH = 6.283;       // sine wave cycle (6.283 radians is pi*2, or one full cycle)
+  float PULSE_PERIOD = 1.50;            // 1.5 seconds is chosen speed  
 
-//_____________________________________________
-// declare variables
+//____________________ declare variables ____________________
   
   // 1B - Bluetooth
   String lastCommand = "";
@@ -105,6 +101,13 @@ float PULSE_PERIOD = 1.50;            // 1.5 seconds is chosen speed
 //                  BS  E  D4 D5  D6 D7
   LiquidCrystal lcd(48, 49, 50, 51, 52, 53);                                             // *4
 
+  Adafruit_PWMServoDriver pwmServoBoard_1 = Adafruit_PWMServoDriver(0x40);
+  int SERVOMIN = 100;   // right
+  int SERVOMID = 290;   // center
+  int SERVOMAX = 480;   // left
+  int servo1pos = 290;
+  int servo2pos =290;
+  bool servo1cw = true;
 
 //____________________ SETUP ( runs once ) _________________________
 void setup() {
@@ -166,6 +169,20 @@ void setup() {
 
   lcd.begin(16, 2);         // declares how many columns and rows on LCD screen                 *4
 
+  pwmServoBoard_1.begin();
+  pwmServoBoard_1.setPWMFreq(50);  // This is the maximum PWM frequency
+
+//pwmServoBoard_1.setPWM(0,0,SERVOMID);
+//delay(1000);
+//
+// pwmServoBoard_1.setPWM(0,0,SERVOMIN);
+//delay(1000);
+//
+//pwmServoBoard_1.setPWM(0,0,SERVOMAX);
+//delay(1000);
+//pwmServoBoard_1.setPWM(0,0,SERVOMID);
+//delay(1000);
+
   sirenLiftServo.attach(SIREN_LIFT_SERVO);              // attaches the servo on pin x to the servo object
   sirenSpinServo.attach(SIREN_SPIN_CSERVO);             // attach continuous servo on pin x to the servo object
 
@@ -205,6 +222,8 @@ void setup() {
   isReady = true;                                 // set isReady state and send to listeners
   sendMessageToAllListeners("ready:1");
   Serial.println("M-O STARTUP ROUTINE COMPLETE - State: isReady\n");
+
+  
 
 } // end SETUP
 
@@ -269,6 +288,27 @@ updateRearLEDscreen();
 
 // 5A --  the Foreign Contaminent red siren light on M-O's head, currently set to trigger via #0 on the IR remote
 updateSirenLamp();
+
+
+//pwmServoBoard_1.setPWM(1, 0, servo1pos);
+//pwmServoBoard_1.setPWM(0, 0, servo1pos);
+//
+////Serial.print("Servo 1: "); Serial.println(servo1pos);
+//if (servo1cw == false) {
+//  servo1pos += 1;
+//} else {
+//  servo1pos -= 1;
+//}
+//
+//if (servo1pos >= SERVOMAX) {
+//  servo1cw = true;
+//  delay(2000);
+//} else if (servo1pos <= SERVOMIN) {
+//  servo1cw = false;
+//    delay(2000);
+//}
+
+
                             
 } // end main LOOP
 

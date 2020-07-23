@@ -177,15 +177,15 @@ void updateRearLEDscreen() {
       case 6:
       case 7:
       case 8:
-        lcd.print("Runtime:        ");                          // left extra spaces here to clear Status messages
-
         // TIME:
+        lcd.print("Runtime:        ");                          // left extra spaces here to clear Status messages
+        
         seconds = millis() / 1000; minutes = seconds/60; seconds = seconds % 60;
         
-        lcd.setCursor(9,0); lcd.print(minutes); lcd.print(":");
+        lcd.setCursor(9,0); lcd.print(minutes); lcd.print(":"); 
         if(seconds < 10) { lcd.print("0"); }
         lcd.print(seconds);
-         break;
+        break;
       case 9:
         // this now pulls temp from mpu6050 instead of thermister
         dtostrf(mpu6050Temperature, 4, 1, buffer2);                   // data to String
@@ -203,22 +203,15 @@ void updateRearLEDscreen() {
          lcd.print("Power Level: TBA");
          break;
     }
-  
-    if (updateLCDframe >= 14) { 
-      updateLCDframe = 0;
-    } else { 
-      updateLCDframe += 1;
-    }
 
     // added functionality to print IMU pitch/roll to lower line
     if (updateLCDframe >= 0) {
-      lcd.setCursor(1, 1);
-      lcd.print(pitch >= 0 ? "p: " : "p:");
-      lcd.print(pitch); 
-      lcd.setCursor(8, 1);
-      lcd.print(roll >= 0 ? " r: " : " r:");
-      lcd.print(roll);
+      lcd.setCursor(1, 1); lcd.print(pitch >= 0 ? "p: " : "p:"); lcd.print(pitch); 
+      lcd.setCursor(8, 1); lcd.print(roll >= 0 ? " r: " : " r:"); lcd.print(roll);
     }
+
+    // increment frame counter
+    if (updateLCDframe >= 14) { updateLCDframe = 0; } else { updateLCDframe += 1; }
 
     
    //   TODO - add boolean outsideLCDupdate or cycleLCDnormally that let's outside calls pause this sequence for at least an interval when they update the top line

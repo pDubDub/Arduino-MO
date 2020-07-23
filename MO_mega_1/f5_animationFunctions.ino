@@ -9,7 +9,7 @@
 
 void updateSirenLamp() {
   if (sirenDidChange == true) {     // state change boolean, so these commands only run when there's change, not every loop cycle
-    if (sirenOn == true) {
+    if (sirenOn == true) { 
       sirenSpinServo.write(100);                        // tells continuous servo to go (90 ~ stopped, 100 is pretty close to 60rpm)
       sirenLiftServo.write(180);                        // sends lift servo to 'up' position
         

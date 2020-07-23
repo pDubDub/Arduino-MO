@@ -6,18 +6,7 @@
  * 
  */
 
- void sendMessageToAllListeners(String message) {
-  // this function will send a String to all places at once
-
-  Serial.println((String)" -> Sending message \"" + message + "\" to Mega-2 (slave 1) over I2C");
-  sendToI2CSlave(message, 1);
-
-  Serial.println((String)" -> Sending message \"" + message + "\" to Mega-3 (slave 2) over I2C");
-  sendToI2CSlave(message, 2);
-
-  Serial.println((String)" -> Sending message \"" + message + "\" to iOS app over BT");
-  Serial1.print(message);
-}
+ 
 
 // TODO - build an i2C receiver, so that other Megas can send 'query' and Mega-1 will send out important states?
  //     Does iOS app need same? Or does it already have it below in BTListener?
@@ -88,7 +77,7 @@ void translateIR() {
       case 0xFFFFFFFF: Serial.println(" REPEAT");break;  
     
       default: 
-        Serial.println(" other IT signal : ");
+        Serial.print(" other IR signal : ");
         Serial.println(results.value);
   
     }// End SWITCH statement
@@ -99,7 +88,7 @@ void translateIR() {
 // 1B --------------------------------- Bluetooth (4 functions from tutorial) ---------------------------------
 // TODO - don't love the presence of delay()'s
 void sendBTCommand(const char * command) {
-  Serial.println((String)"Command \"" + command + "\" sent to iOS app over BT");
+  Serial.println((String)"      Sending command \"" + command + "\" to AT-09 Bluetooth module.");
   Serial1.println(command);
   
   delay(100);                         //wait some time
@@ -110,8 +99,13 @@ void sendBTCommand(const char * command) {
     reply[i] = Serial1.read();
     i += 1;
   }
+//  Serial.println((String)"      Received reply \"" + reply + "\" from AT-09 Bluetooth module.");
+  Serial.print("      Received reply \"");
+  Serial.print(reply);
+  Serial.println("\" from AT-09 Bluetooth module.");
   reply[i] = '\0';   //end the string
-  Serial.println((String)"AT-09 received message: " + reply );
+    // TODO - experiment. Do I need to previous line, adding "\0" to the end of reply character array?
+  
 //  Serial.println(reply);
   // Serial.println("Reply: successful");
 
@@ -267,16 +261,11 @@ void calculate_IMU_error() {
   GyroErrorZ = GyroErrorZ / 200;
   // Print the error values on the Serial Monitor
   Serial.println("\n Calculating IMU 6050 error:");
-  Serial.print("  AccErrorX: ");
-  Serial.println(AccErrorX);
-  Serial.print("  AccErrorY: ");
-  Serial.println(AccErrorY);
-  Serial.print("  GyroErrorX: ");
-  Serial.println(GyroErrorX);
-  Serial.print("  GyroErrorY: ");
-  Serial.println(GyroErrorY);
-  Serial.print("  GyroErrorZ: ");
-  Serial.println(GyroErrorZ);
+  Serial.print("  AccErrorX: "); Serial.print(AccErrorX);
+  Serial.print("\t  AccErrorY: "); Serial.println(AccErrorY);
+  Serial.print("  GyroErrorX: "); Serial.print(GyroErrorX);
+  Serial.print("\t  GyroErrorY: "); Serial.print(GyroErrorY);
+  Serial.print("\t  GyroErrorZ: "); Serial.println(GyroErrorZ);
 }
 
 void read6050imu() {
@@ -315,40 +304,48 @@ void read6050imu() {
   GyroX = (Wire.read() << 8 | Wire.read()) / 131.0; // For a 250deg/s range we have to divide first the raw value by 131.0, according to the datasheet
   GyroY = (Wire.read() << 8 | Wire.read()) / 131.0;
   GyroZ = (Wire.read() << 8 | Wire.read()) / 131.0;
-//  Serial.print("GyroX: "); Serial.print(GyroX);
+
+  // printing inputs, looking for NaN condition:
+//  Serial.print("AccX: "); Serial.print(AccX);
+//  Serial.print(" \tGyroX: "); Serial.println(GyroX);
   // Correct the outputs with the calculated error values
+  if (isnan(GyroX)) {                                             // debug - trying to track down Nan error
+    Serial.println("********NaN*********");
+    Serial.println(GyroX);
+  }
   GyroX = GyroX - GyroErrorX; // GyroErrorX ~(-7.49)
   GyroY = GyroY - GyroErrorY; // GyroErrorY ~(3.2)
-  GyroZ = GyroZ - GyroErrorZ; // GyroErrorZ ~ (1.12)
-  // Currently the raw values are in degrees per seconds, deg/s, so we need to multiply by seconds (s) to get the angle in degrees
-  gyroAngleX = gyroAngleX + GyroX * elapsedTime6050; // deg/s * s = deg
-  gyroAngleY = gyroAngleY + GyroY * elapsedTime6050;
-  yaw =  yaw + GyroZ * elapsedTime6050;
-  // Complementary filter - combine acceleromter and gyro angle values
-  roll = 0.96 * gyroAngleX + 0.04 * accAngleX;
-  pitch = 0.96 * gyroAngleY + 0.04 * accAngleY;
-      // pw: I tried adjusting this 0.04 number to 0.4 to see effect on drift. It didn't seem to improve much. Still drifting about 0.5 deg/min
-      // need to fully read article:
-      //  https://howtomechatronics.com/tutorials/arduino/arduino-and-mpu6050-accelerometer-and-gyroscope-tutorial/
+//  GyroZ = GyroZ - GyroErrorZ; // GyroErrorZ ~ (1.12) //*
   
-  // Print the values on the serial monitor
-//  Serial.print("  Corrected GyroX: "); Serial.print(GyroX);
-//  Serial.print("  gyroAngleX: "); Serial.print(gyroAngleX);
-//  
-//  Serial.print(".   Pitch (x): ");
-//  Serial.println(pitch);
-  
-//  Serial.print("    Roll (y): ");
-//  Serial.println(roll);
+  // Replaced original algorithm with a better Complementary Filter formula that provided much better, more consistent results. It fewer steps.
+  //     http://www.pieter-jan.com/node/11
+  if (isnan(roll)) {                                             // debug - trying to track down Nan error
+    Serial.println("*******************roll Nan**************");
+    Serial.print("roll: "); Serial.print(roll); Serial.print(" GyroX: "); Serial.print(GyroX);
+    Serial.print(" accAngleX: "); Serial.println(accAngleX);
+    roll = 0;
+  }
+                    // Do I maybe need to perform a string.toDouble() to dump any NaN's?
+                    
+  roll = 0.98 * (roll + GyroX * elapsedTime6050) + 0.02 * accAngleX;
+  pitch = 0.98 * (pitch + GyroY * elapsedTime6050) + 0.02 * accAngleY;
+//  yaw = (yaw + GyroZ * elapsedTime6050); //*                    // Original tutorial never implemented accAngleZ.
 
-  // pw July 4 2020 : mpu6050 code is currently working after being moved to MO-1. I have commented out the Serial.print lines here and at top of page (for temperature).
+   // * I don't actually use or have plans for head yaw (from the 6050) so I commented out these lines.
 
-  // TODO - pitch and roll values slowly drift over time. Either our Error values are not right, or we're losing something in Precision.
+  // note: I'm changing the order, as pitch-roll-yaw is a more natural sequence.
+//  Serial.print(" p: "); Serial.print(pitch >= 0 ? " " : ""); Serial.print(pitch);
+//  Serial.print(" r: "); Serial.print(roll >= 0 ? " " : ""); Serial.print(roll);
+//  Serial.print(" y: "); Serial.print(yaw >= 0 ? " " : ""); Serial.println(yaw);
+
+  // pw July 4 2020 : mpu6050 code is currently working after being moved to MO-1. 
+  //   I have commented out the Serial.print lines here and at top of page (for temperature).
+  // July 15 : changed algorithm to a better Complementary Filter.
+  //   It still wobbles a little within +/- 0.1 degree, but that's pretty negligible.
+
+  // TODO - perhaps there's a smoothing or low-cut filter I could implement to get rid of < +/- 0.2 degree noise
 
   // TODO - there is a condition, perhaps a high-G stop, that makes pitch & roll read "nan"?
   //  Perhaps if we get a not-a-number condition, we need to reinitialize the MPU?
 
-  // commented out Yaw output, because MO's head won't need it.
-//  Serial.print("    Y (z): ");
-//  Serial.println(yaw);
 }

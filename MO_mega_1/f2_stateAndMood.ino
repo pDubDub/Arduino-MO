@@ -6,10 +6,7 @@
  */
 
  
-      // Because emotes can be triggered from IR, iOS or even other emotes, or even random reactions,
-      //   each IF or CASE in IR or BT on page f1 should trigger a behavior that should live here in f2_stateAndMood
-      //   .
-      
+
 
 void toggleAwakeState() {
   isAwake = !isAwake;
@@ -29,9 +26,14 @@ void toggleAwakeState() {
     previousPulseUpdateMillis = millis();
 
     // EXPERIMENT: can I recalibrate IMU when we go to sleep
-    calculate_IMU_error();
+    //      calculate_IMU_error();
     // In practice, we would likely want to wait until he had time to compact and settle before doing this, if it works at all.
     //   Possibly, before waking up too?
+    // Done - Does recalibrating IMU on sleep have positive results? Not particularly.
+
+    // TODO - I think I would rather have sleep trigger a 5 second pause, in which we take average pitch readings, in a pitchAdjust variable.
+    //   Then in the IMU code, add the pitchAdjust (and rollAdjust) values to pitch (and roll).
+    // Probably don't want to do this until after we develop some smoothing/filtering code to make readings more stable.
     
   }
   sendToI2CSlave(message2send, 1);
@@ -72,3 +74,18 @@ void toggleSirenState() {
     Serial.println("0 = Siren Lamp, but it's currently disabled by SLEEP MODE");    
   }
 }
+
+
+void animate(String emote) {
+      // Because emotes can be triggered from IR, iOS or even other emotes, or even random reactions,
+      //   each IF or CASE in IR or BT on page f1 should trigger a behavior that should live here in f2_stateAndMood
+      
+      // Accept a sting emote
+      // Call servo movements
+      // Send emote string on to slaves
+      sendToI2CSlave("emo:1", 1);                           // example
+      
+      //    Which in turn read emote and play sounds and animate eyes
+      // Then return emote state string back to "none"
+      
+}      
