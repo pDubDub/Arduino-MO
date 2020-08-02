@@ -233,7 +233,12 @@ void calculate_IMU_error() {
     AccZ = (Wire.read() << 8 | Wire.read()) / 16384.0 ;
     // Sum all readings
     AccErrorX = AccErrorX + ((atan((AccY) / sqrt(pow((AccX), 2) + pow((AccZ), 2))) * 180 / PI));
+
+// saw post state pow() function is slow. Instead use...
+//    AccErrorX = AccErrorX + ((atan((AccY) / sqrt(AccX * AccX + AccZ * AccZ)) * 180 / PI));
+    
     AccErrorY = AccErrorY + ((atan(-1 * (AccX) / sqrt(pow((AccY), 2) + pow((AccZ), 2))) * 180 / PI));
+    
     errorSamples++;
   }
   //Divide the sum by 200 to get the error value
@@ -280,9 +285,14 @@ void read6050imu() {
   AccZ = (Wire.read() << 8 | Wire.read()) / 16384.0; // Z-axis value
 
   // pulled funcitonality from sketch "jun30_tempFrom6050
-  //   changed 2nd parameter in .requestFrom() line above from 6 to 8 to get temp data
+  //   changed 2nd parameter in .requestFrom() line above from 6 to 8 to get temperature data
   mpu6050Temperature = Wire.read()<<8 | Wire.read(); // reading registers: 0x41 (TEMP_OUT_H) and 0x42 (TEMP_OUT_L)
   mpu6050Temperature = (mpu6050Temperature / 340.00 + 36.53) * 9/5 +32 -3.4; // -3.4 is my manual calibration
+  if (mpu6050Temperature > ALERT_TEMPERATURE) {
+    tempIsHigh = true;
+  } else {
+    tempIsHigh = false;
+  }
 //  Serial.print("temp deg F: "); Serial.print(mpu6050Temperature);
   
   // Calculating Roll and Pitch from the accelerometer data
@@ -319,16 +329,32 @@ void read6050imu() {
   
   // Replaced original algorithm with a better Complementary Filter formula that provided much better, more consistent results. It fewer steps.
   //     http://www.pieter-jan.com/node/11
-  if (isnan(roll)) {                                             // debug - trying to track down Nan error
+  if (!isnan(roll)) {                                             // debug - trying to track down Nan error
+    roll = 0.98 * (roll + GyroX * elapsedTime6050) + 0.02 * accAngleX;
+  } else {                                                        // if it is NaN
     Serial.println("*******************roll Nan**************");
-    Serial.print("roll: "); Serial.print(roll); Serial.print(" GyroX: "); Serial.print(GyroX);
-    Serial.print(" accAngleX: "); Serial.println(accAngleX);
+    Serial.print("\troll: "); Serial.print(roll); 
+    Serial.print("\tGyroX: "); Serial.print(GyroX);
+    Serial.print("\ttime: "); Serial.print(elapsedTime6050);
+    Serial.print("\taccAngleX: "); Serial.println(accAngleX);
     roll = 0;
   }
+
+  if (!isnan(pitch)) {
+    pitch = 0.98 * (pitch + GyroY * elapsedTime6050) + 0.02 * accAngleY;
+  } else {
+    pitch = 0;
+    Serial.println("*******************pitch Nan**************");
+  }
+    // pw: These DID catch the NaN and recover.
+    //   I don't know what setting to 0 actually does to behavior, if NaN occurs when tilted.
+    //   Possible, that we need to assigned roll = previousRoll or something.
+
+  
                     // Do I maybe need to perform a string.toDouble() to dump any NaN's?
                     
-  roll = 0.98 * (roll + GyroX * elapsedTime6050) + 0.02 * accAngleX;
-  pitch = 0.98 * (pitch + GyroY * elapsedTime6050) + 0.02 * accAngleY;
+//  roll = 0.98 * (roll + GyroX * elapsedTime6050) + 0.02 * accAngleX;
+//  pitch = 0.98 * (pitch + GyroY * elapsedTime6050) + 0.02 * accAngleY;
 //  yaw = (yaw + GyroZ * elapsedTime6050); //*                    // Original tutorial never implemented accAngleZ.
 
    // * I don't actually use or have plans for head yaw (from the 6050) so I commented out these lines.
@@ -345,7 +371,6 @@ void read6050imu() {
 
   // TODO - perhaps there's a smoothing or low-cut filter I could implement to get rid of < +/- 0.2 degree noise
 
-  // TODO - there is a condition, perhaps a high-G stop, that makes pitch & roll read "nan"?
-  //  Perhaps if we get a not-a-number condition, we need to reinitialize the MPU?
+
 
 }

@@ -19,6 +19,7 @@
     // Pins are fine when used in "debugging_RGB_LED" sketch
   const int RGB_LED_GREEN = 8;
   const int RGB_LED_BLUE = 11;
+  const int ALERT_TEMPERATURE = 90;
 
   const int A_SERVO = 44;               // this is a test servo, trying to control from iOS
 
@@ -28,7 +29,7 @@
                                             // making this smaller, makes blink pattern faster
 
   // These values determine the speed of sine wave LED cycle.                                     *4
-  // Used to use a constant increment of 0.001 for each loop cycle. Now we compute based on dt interval since last loop cycle.
+  // Used to use a constant increment of 0.001 for each loop cycle. Now we compute based on delta-time interval since last loop cycle.
   float PULSE_WAVELENGTH = 6.283;       // sine wave cycle (6.283 radians is pi*2, or one full cycle)
   float PULSE_PERIOD = 1.50;            // 1.5 seconds is chosen speed  
 
@@ -61,7 +62,7 @@
   float roll, pitch, yaw;
   float mpu6050Temperature;
   float AccErrorX, AccErrorY, GyroErrorX, GyroErrorY, GyroErrorZ;
-  float elapsedTime6050, currentTime6050, previousTime6050;
+  float elapsedTime6050, currentTime6050, previousTime6050, previous6050read;
   int errorSamples = 0;
    
   int frame = 0;                            // used to track frame in blink pattern             *4
@@ -70,24 +71,23 @@
   int pulseBrightnessValue = 0;                   // used for pulsing green RGB LED              *4B
   float pulseMaxBrightness = 50;                  // changes max brightness of green LED pulse
   float wave = 4.712;                             // 4.712 value starts wave at the bottom
-  enum RGBColor { red, green, blue };
-  RGBColor desiredColor = green;                  // used to make *3 a multicolor pulse
-  RGBColor pulseColor = green;
+  enum RGBPulseColor { red, green, blue, orange, off };
+  RGBPulseColor desiredColor = green;                  // used to make *3 a multicolor pulse
+  RGBPulseColor pulseColor = green;
 
-  bool isReady = false;                            // MO can be on and functional, yet asleep
-  bool isAwake = false;                           // defines whether MO is sleeping or alert & ready for commands
+  bool batteryIsLow = false;                // placeholder variable (no hardware to set this yet)
+  bool startupDidFail;
+  bool tempIsHigh;
+  bool isReady;                            // MO can be on and functional, yet asleep
+  bool isAwake;                           // defines whether MO is sleeping or alert & ready for commands
   bool previousIsAwake = false;
-  bool sleepStrobeIsOn = true;                    // allows strobe to turn off at bottom of pulse *4
+  bool pulsingLEDisOn = true;                    // allows strobe to turn off at bottom of pulse *4
   bool sirenOn = false;                           // *6
   bool sirenDidChange = true;
 
   // 4C - used in LCD screen functionality
   int seconds, minutes;
-//  int tempReading = 80;                     
-//  double tempK = 0;
-//  double tempF = 80;
   char buffer2[16];
-//  int tempDisp = 800;
 
 //_____________________________________________
 // declare objects
@@ -112,23 +112,42 @@
 //____________________ SETUP ( runs once ) _________________________
 void setup() {
 
-  sendMessageToAllListeners("ready:0");
-    // fixes a condition where if Mega-2 is already running (thinking isReady) and then Mega-1 reboots, 
-    //      it snores below at 'awake:0' before it gets 'ready:1' and plays wakeup chime.
+  /* startup sequence:
+  *     • confirm that i2C communication to other megas is working
+  *     • should send slow move commands to lower head, torso and foot in case they're not down (as after a fall)
+  *               (actually maybe all movements back to default)
+  *     • after timer to match setup movements, set booleans isCompact and isFootDown to true, and also isAwake to false?
+  *     • await time for IMU readings to stabilize
+  *       
+  *     - if any startup task fails, then startupDidFail = true;  
+  *     
+  *     • set isReady = !startupDidFail
+  *       • send isReady to slaves -> Mega-2 plays startup chime
+  *     • pulsing LED starts (green if OK, orange if startup did fail)    
+  *     • don't accept IR or BT commands is !isReady
+  */
 
-  // I envision setting isReady as true, and if any setup function fails, we set it false.
-  // But I'm not feeling fond of the 'reverse' logic.
-  
+  startupDidFail = false;
+  isReady = false;
+  isAwake = false;
+
   Serial.begin(9600);         // this used to be 11520. don't know why. changed it to 9600
 
   Serial.println("\nMICROBE OBLITERATOR STARTUP ROUTINE INITIATED");
 
+  sendMessageToAllListeners("ready:0");
+    // fixes a condition where if Mega-2 is already running (thinking isReady) and then Mega-1 reboots, 
+    //      it snores below at 'awake:0' before it gets 'ready:1' and plays wakeup chime.
+
+  // TODO - can I get MO-2 Serial to print a message that "MO STARTUP ROUTINE INITIATED" ??
+
+  
   // for IR Remote *1
   irrecv.enableIRIn();  // Start the receiver
-  Serial.println("    IR Receiver Decode enabled.");
+  Serial.println("\n *  IR Receiver Decode enabled.");
 
   // 1B - Bluetooth
-  Serial.println("    Configuring Bluetooth communication:");
+  Serial.println(" *  Configuring Bluetooth communication:");
   Serial1.begin(9600);
   sendBTCommand("AT");                  // calls sendBTCommand function to setup the BlueTooth module from Arduino
   sendBTCommand("AT+ROLE0");            // makes AT-09 BT module a peripheral
@@ -140,14 +159,14 @@ void setup() {
   // confirm i2c communication
   Wire.begin(0);                                          // 3 - starts I2C communication as Master to slaves
     // I think I could put the Wire.onReceive(receiveEvent) here, and then slaves can message the master too
-  Serial.println("    I2C communication enabled.");           // dummy message, eventually needing conditional
+  Serial.println(" *  I2C communication enabled.");           // dummy message, eventually needing conditional
 
   // mpu6050 setup:
   Wire.beginTransmission(mpu6050Address);       // Start communication with MPU6050 // MPU=0x68
   Wire.write(0x6B);                             // Talk to the register 6B
   Wire.write(0x00);                             // Make reset - place a 0 into the 6B register
   Wire.endTransmission(true);                   // end the transmission
-  Serial.println("    MPU 6050 gyro/accelerometer enabled.");
+  Serial.println(" *  MPU 6050 gyro/accelerometer enabled.");
   
 
   //  isReady = false;
@@ -194,16 +213,6 @@ void setup() {
   servo1.start();
   // TODO - should there be a beginning position command here?
 
-  /* startup sequence:
-  *     • confirm that i2C communication to other megas is working
-  *     • should send slow move commands to lower head, torso and foot in case they're not down (as after a fall)
-  *               (actually maybe all movements back to default)
-  *     • after timer to match setup movements, set booleans isCompact and isFootDown to true, and also isAwake to false?
-  *     • await time for IMU readings to stabilize
-  *     • set bool isReady to true, play startup chime and start pulsing LED
-  *       (don't except IR or BT commands if !isReady ?)
-  *       
-  */
 
   isAwake = false;
   sendMessageToAllListeners("awake:0");
@@ -218,10 +227,20 @@ void setup() {
 
   calculate_IMU_error();                          // moved mpu6050 calibration to end of setup to observe difference.
   delay(20);
-  
-  isReady = true;                                 // set isReady state and send to listeners
-  sendMessageToAllListeners("ready:1");
-  Serial.println("M-O STARTUP ROUTINE COMPLETE - State: isReady\n");
+
+  if (!startupDidFail) {
+      isReady = true;                                 // set isReady state and send to listeners
+      sendMessageToAllListeners("ready:1");
+      Serial.println("M-O STARTUP ROUTINE COMPLETE - State: isReady\n");
+
+      // TODO - set LED pulse to Green
+      
+  } else {
+      Serial.println("**** STARTUP ROUTINE FAILED ****");
+
+      // TODO - set LED pulse to Orange
+  }
+
 
   
 
@@ -238,15 +257,64 @@ void loop() {
   readFromBluetooth();
 
   // 1C - read mpu6050 gyro
-  read6050imu();
+  if ((millis() - previous6050read) > 100) {
+    // This make us only read the 6050 roughly 10 times per second.
+    // This appears to solve a problem where reading the 6050 every cycle created too much I2C traffic, 
+    //   causing the OLED screen to mess up.
+    // This may be adequate solution for head-leveling IMU. Not sure if there will be a problem when Mega-1 is
+    //   reading 6050 at the same time as Mega-3 is reading a 9250.
+    read6050imu();                                      //commenting out solves OLED problems.
+    previous6050read = millis();
+  }
+  
   
   // *4A - blink pattern on internal and external LED
   blinkRunningLED();
   
-  // *4B --  causes the RGB LED to pulse green only if bot is in sleep mode
-  if (sleepStrobeIsOn) {
+  // *4B --  update the pulsing LED only is ON
+  if (pulsingLEDisOn) {
       updatePulsingLED();
   }
+
+  // rewrite of the pulsing LED:
+  /*
+   * Might make two functions in f4:
+   *      - one to update the color (every loop)
+   *      - a second to update the LED (only when (pulseColor != off) && (pulsingLEDisOn)
+   *      
+   *      Second func could be called by the first, and maybe pass in a color?
+   * 
+   * psuedocode:
+   *  if (batteryIsLow) {
+   *    desiredColor = blue
+   *    // should probably trigger a parking command, and perhaps if too low, put him to sleep
+   *  } else if (startupDidFail) { 
+   *    desiredColor = orange
+   *    // possibly even pulsing faster?
+   *    // !isReady
+   *    // should prevent action, both internal or IR/BT
+   *  } else if (tempIsHigh) {
+   *    desiredColor = red
+   *  } else if (!isAwake) {
+   *    desiredColor = blue
+   *  } else {  
+   *    desiredColor = off
+   *    // will cause updatePulsingLED() to update pulsingLEDisOn = false when the current pulse reaches bottom.
+   *  }
+   *  
+   *  if (pulsingLEDisOn) {
+   *    updatePulsingLED(desiredColor)
+   *  }
+   *  
+   *  // I need to review my logic that limits the strobe to starting/stopping/changing only at the bottom (dark) position of pulsing
+   *  
+   *  if (pulseColor != off) && (pulsingLEDisOn) {
+   *    updatePulsingLED()
+   *  }
+   *  
+   */
+
+  
 
 // this was a millis function to send random int 0-180 every 2 seconds for MoServo demonstration
 //  currentMillis = millis();
@@ -311,7 +379,3 @@ updateSirenLamp();
 
                             
 } // end main LOOP
-
-
-
-// TODO - need to go through logic. There are still instances where an IR 'power' command or BT 'sleep/wake' don't actually toggle, but just repeat the previous state

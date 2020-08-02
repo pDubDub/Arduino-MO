@@ -5,6 +5,7 @@
 #include <Stepper.h>
 #include <Wire.h>                           // for receiving messages over I2C
 
+
 //_____________________________________________
 // declare constants for pin numbers
 
@@ -43,8 +44,31 @@ const int rolePerMinute = 1;          // Adjustable range of 28BYJ-48 stepper is
 
   String message;                           // for received I2C message
 
+  const int mpu9250Address = 0x69;
+
+  // for 9250 PID
+  float target = 0;       // target angle for PID
+    /*
+     * Eventually, we would have multiple targets, on for pitch, roll and yaw.
+     * And adjusting the target would result in movement.
+     * 
+     * 
+     */
+  unsigned long nextTime = 0;
+
+  // PID value will need to be tuned under actual operational testing:
+  float Kp = 7;          // (P)roportional Tuning Parameter
+  float Ki = 6;          // (I)ntegral Tuning Parameter        
+  float Kd = 3;          // (D)erivative Tuning Parameter       
+  float iTerm = 0;       // Used to accumulate error (integral)
+  float lastTime = 0;    // Records the last time function was called
+  float maxPID = 255;    // The maximum value that can be output
+  float oldValue = 0;    // The last sensor value
+
 //_____________________________________________
 // declare objects
+
+
 
   // initialize the stepper library on pins n1 through n2:
   Stepper myStepperA(STEPS_PER_REV, 22, 24, 23, 25);
@@ -60,6 +84,8 @@ void setup() {
 
   Wire.begin(I2C_ADDRESS);                                // for I2C communication on SDA and SCL pins
   Wire.onReceive(receiveEvent);
+
+
   
   pinMode(LED_BUILTIN, OUTPUT);                           // for internal LED blink           *2
 
@@ -78,11 +104,23 @@ void setup() {
 //____________________ MAIN LOOP ( runs continuously )_________________________
 void loop() {
 
+
+  
+  // f4 - running LED 
   blinkRunningLED();
 
+  // Only run the controller once the time interval has passed
+  if (nextTime < millis()) {
+    nextTime = millis() + 10;           // runs loop every 10 ms (10ms = 100Hz)
+    angle = getAngle();
+    motorOutput = PID(target, angle);
+    moveMotors(motorOutput);
+  }
+
+  
+  // f5 - stepper motors
   if (isAwake) {
       updateSteppers();
   }
-
 
 } // end main LOOP

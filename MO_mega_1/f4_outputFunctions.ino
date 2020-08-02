@@ -50,31 +50,35 @@ void blinkRunningLED() {
 // *4B --------------------------- causes the RGB LED to pulse green only if bot is in sleep mode ---------------------------
 void updatePulsingLED() {
   //    ** RGB LED pulses Green when Asleep
-  //              pulses RED when internal temp is high
+  //              pulses RED when internal temperature is high
   //              FUTURE - pulse BLUE when battery is low
   
   //  using sine wave LED tutorial https://www.sparkfun.com/tutorials/329
 
-  // TODO - I'm not sure. The pulsing red light for power or temp might actually need to go on even if isAwake, no?
+  // TODO - I'm not sure. The pulsing red light for power or temperature might actually need to go on even if isAwake, no?
 
   // TODO - this if else is running every loop. But should only run on changes.
-  if (!sleepStrobeIsOn && !isAwake) {             // if isAwake bool false, then he's asleep. turn on sleep strobe.
-    sleepStrobeIsOn = true;
+  if (!pulsingLEDisOn && !isAwake) {             // if isAwake bool false, then he's asleep. turn on sleep strobe.
+    pulsingLEDisOn = true;
     wave = 4.712;                                 // the bottom of the wave   
     previousPulseUpdateMillis = millis();
     Serial.println(" \n ------------- strobe on ----");
 
-    // TODO - This condition never actually triggers, as updatePulsingLED() is not called until sleepStrobeIsOn == true.
+    // TODO - This condition never actually triggers, as updatePulsingLED() is not called until pulsingLEDisOn == true.
     //    So it might deserve deletion.
 
     
   } else if (isAwake && pulseBrightnessValue < 1) {    // this should stop strobe only at bottom
-    sleepStrobeIsOn = false;
+    pulsingLEDisOn = false;
   }
 
   // changing pulse color to red if tempF above 90
   //  **  LATER we can use this to indicate low system battery or batteries **
-  desiredColor = mpu6050Temperature > 90 ? red : green;           // This works. 
+//  desiredColor = mpu6050Temperature > 90 ? red : green;           // This works.
+
+  desireColor = tempIsHigh ? red : green;               // changed to decide based on bool set by mpu6050
+  // Soon setting the color will be moved out of this function.
+  
   // For some reason, using pins 9 or 10 would freeze sketch, so RGB now on 7, 8 & 11
 
   if ((pulseBrightnessValue < 1 ) && (pulseColor != desiredColor)) {    // should change pulse color only at bottom
@@ -82,10 +86,10 @@ void updatePulsingLED() {
     // Serial.print("color changed");
   }
 
-  if (sleepStrobeIsOn) {      // strobe runs green LED while M-O is ON but sleeping
+  if (pulsingLEDisOn) {      // strobe runs green LED while M-O is ON but sleeping
     // set brightness      
     pulseBrightnessValue = sin(wave) * (pulseMaxBrightness/2) + (pulseMaxBrightness/2);   // replaced 127.5 with variable to define amplitude of wave
-//    Serial.println(wave);
+
     if(pulseColor == red) {
       analogWrite(RGB_LED_RED, pulseBrightnessValue);
     } else {
@@ -129,7 +133,7 @@ void updatePulsingLED() {
 
     // TODO - for further efficiency, could still pre-calculate the literal value of 6.283/(2.0 * 1000) to elimate math calculations each loop
 
-    // TODO - if dt is no longer used anywhere, could be removed from sketch
+
     // TODO - can also remove the constants for PULSE_WAVELENGTH and PULSE_PERIOD
 
     // for reference: the constant declarations from above.
@@ -187,19 +191,17 @@ void updateRearLEDscreen() {
         lcd.print(seconds);
         break;
       case 9:
-        // this now pulls temp from mpu6050 instead of thermister
+        // DONE - this now pulls temperature from mpu6050 instead of thermister
         dtostrf(mpu6050Temperature, 4, 1, buffer2);                   // data to String
-        // DONE - pulsing strobe red color logic needs to pull from mpu6050Temperature now instead of thermister
         
-         //( TEMP FUNCTION lies below, because it still updates constantly for blue strobe )
-
          // old format:
 //         sprintf(buffer2,"Int-Temp: %3d\337F", mpu6050Temperature);
               // format string from https://forum.arduino.cc/index.php?topic=441616.0
               // "\337" is code for degree character
          lcd.print("Int-Temp: "); lcd.print(buffer2); lcd.print("\337F"); break;
        case 12:
-         // TODO - INSERT BATTERY MESSAGE HERE - "Main Battery: V"
+         // FUTURE - if we one day acquire hardware to read battery level,
+         //   we would then INSERT BATTERY MESSAGE HERE - "Main Battery: V"
          lcd.print("Power Level: TBA");
          break;
     }
@@ -216,11 +218,5 @@ void updateRearLEDscreen() {
     
    //   TODO - add boolean outsideLCDupdate or cycleLCDnormally that let's outside calls pause this sequence for at least an interval when they update the top line
 
-    // TEMP - inspired by tutorial https://www.hacktronics.com/Tutorials/arduino-thermistor-tutorial.html
-//    tempReading = analogRead(A0);                 
-//    tempK =  log(((10240000/tempReading) - 10000));
-//    tempK = 1 / (0.001129148 + (0.000234125 * tempK) + (0.0000000876741 * tempK * tempK * tempK));       //  Temp Kelvin
-//    tempF = ((tempK - 273.15) * 9.0)/ 5.0 + 32.0; // Convert Celcius to Fahrenheit
-//    tempDisp = tempF * 10;            // converts temp to Int for sprintf function
   }
 } // end 4C

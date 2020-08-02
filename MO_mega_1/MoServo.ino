@@ -61,7 +61,7 @@ class MoServo {
         // FUTURE - it might be nice to be able to redefine the center/default position of the servo while running, rather than having to edit code
         //    but that will add a deal of complexity to iOS app, so I won't go that way yet.
         
-//        void write(int degrees) {     // this was temp, while getting control working.
+//        void write(int degrees) {     // this was temporary, while getting control working.
 //          servo.write(degrees);
 //        }
 

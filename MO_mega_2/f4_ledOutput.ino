@@ -1,6 +1,6 @@
 
 /*
- * Function to update the blinking LED that indicates processor is running
+ * Function to update the blinking LED that indicates processor is running.
  */
 
 void blinkRunningLED() {

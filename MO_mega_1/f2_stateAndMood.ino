@@ -11,17 +11,14 @@
 void toggleAwakeState() {
   isAwake = !isAwake;
 
-  Serial.println("");
-  Serial.println("*********************************************************************");
-  Serial.print("M-O isAwake toggled to ");
-  Serial.println(isAwake ? "Awake" : "Asleep");
+  Serial.print("\n **** M-O isAwake toggled to "); Serial.print(isAwake ? "Awake" : "Asleep"); Serial.println(" ****");
   
   String message2send = "";
   if (isAwake) { 
     message2send = "awake:1";
   } else { 
     message2send = "awake:0";
-    sleepStrobeIsOn = true;
+    pulsingLEDisOn = true;
     wave = 4.712;                                       // these two statements added to assure pulsing starts from off
     previousPulseUpdateMillis = millis();
 
@@ -43,7 +40,7 @@ void toggleAwakeState() {
   // TODO - Isn't it more efficent to use sendMessageToAllListeners() function?
   
   Serial1.println(message2send);                                    // also send to app over BT
-  Serial.println("\"" + message2send + "\" also sent to BT app");
+  Serial.println("    Message \"" + message2send + "\" also sent to iOS app over BTLE.");
 
   lcd.setCursor(0, 0);
   lcd.print(isAwake ? "M-O Awake       " : "zzz Sleep Mode  ");

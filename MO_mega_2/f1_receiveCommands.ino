@@ -1,6 +1,7 @@
 
 // could actually design this so slaves can message master too. but is there reason to?
 
+// *1A --------------------------------- Receive I2C message ---------------------------------
 void receiveEvent(int bytes) {                        // called when message received on I2C
   message = "";                                         // clear old message
   while(Wire.available()) { 
@@ -16,8 +17,15 @@ void receiveEvent(int bytes) {                        // called when message rec
 // TODO - try this again
 
   // TODO - rebuild sequence below. Put in proper order. Start to accept "emo:" messages and route them to state functions.
-  
-  if (message.startsWith("play") && isAwake) {            
+
+  if ((message.startsWith("emo") && isAwake)) {
+    // decoding messages from MO-1 in the form of "emo:MO" and trigger both eyes and sound
+    playEmote(message);
+    
+
+
+    
+  } else if (message.startsWith("play") && isAwake) {            
     // decode messages from MO-1 in the form of "play-1" - but only when awake
     message.remove(0,5);                        // remove "play-"
     int trackInt = message.toInt();             // convert to int
@@ -49,7 +57,7 @@ void receiveEvent(int bytes) {                        // called when message rec
       if (isReady) {                                            // to only snore if isReady operational
         Serial.println("I2C message says MO is asleep");
 //        isAwake = false;
-        myDFPlayer.play(3);                                     // play the snore  track 3
+//        myDFPlayer.play(3);                                     // play the snore  track 3
         // TODO - eventually spin this off into a whole "sleeping" behavior funcion, which includes random time interval triggered snore sound.
       }
     } else if (message == "1") {

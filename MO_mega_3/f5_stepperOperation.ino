@@ -1,4 +1,52 @@
 
+/*
+ * PID algorithm borrowed from a 2-wheel balance bot tutorial:
+ *    https://wired.chillibasket.com/2015/03/pid-controller/
+ */
+ 
+float pid(float target, float current) {
+  /**
+   * PID Controller
+   * @param  (target)  The target position/value we are aiming for
+   * @param  (current) The current value, as recorded by the sensor
+   * @return The output of the controller
+   */
+   
+  // this function should take a target angle, and a sensor angle and return a value to move motors
+
+  // we will need another functionality somewhere to combine the results of pitch, roll and yaw
+  //   where a basic 2-wheel balance bot may only worry about pitch
+
+  // Calculate the time since function was last called
+  float thisTime = millis();
+  float dT = thisTime - lastTime;
+  lastTime = thisTime;
+
+  // Calculate error between target and current values
+  float error = target - current;
+
+  // Calculate the integral term
+  iTerm += error * dT; 
+
+  // Calculate the derivative term (using the simplification)
+  float dTerm = (oldValue - current) / dT;
+
+  // Set old variable to equal new ones
+  oldValue = current;
+
+  // Multiply each term by its constant, and add it all up
+  float result = (error * Kp) + (iTerm * Ki) + (dTerm * Kd);
+
+  // Limit PID value to maximum values (from constants. 255 is for PWM motor. 
+  //        We would be able to compute degree movements for  Stepper Motors.)
+  if (result > maxPID) result = maxPID;
+  else if (result < -maxPID) result = -maxPID;
+
+  return result;
+}
+
+
+
 void updateSteppers() {  
   // stepper motor
             /*      forward would be B negative & D positive 
@@ -13,8 +61,9 @@ void updateSteppers() {
       myStepperD.setSpeed(17);
 //                                                  // I've had this value as high as 17
 
-      stepsToMove = 40;                             // not sure how 40 translates to degrees.
-                                                    // TODO - should note that here.
+      stepsToMove = 40;                             
+          // Dimension, Calculations Excel sheet implies that 1 step = 0.13 degree of bot tilt
+
       stepsToMove = (int)random(-50,51);            // overriding literal with a random distance
                                                     
 //    if (true) {      // used to me if isAwake

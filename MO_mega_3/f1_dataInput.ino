@@ -1,6 +1,12 @@
 
+/*    Receive Commands 
+ *      &
+ *    Read IMU
+ */
+ 
 // could actually design this so slaves can message master too. but is there reason to?
 
+// *1A --------------------------------- Receive I2C message ---------------------------------
 void receiveEvent(int bytes) {                        // called when message received on I2C
   message = "";                                         // clear old message
   while(Wire.available()) { 
@@ -42,5 +48,6 @@ void receiveEvent(int bytes) {                        // called when message rec
   } else if (message == "ready:0") {
     isReady = false;
   }
-
 }
+
+// 1B --------------------------------- read data from MPU 9250 gyro ---------------------------------

@@ -30,7 +30,7 @@
  *            Indicates Arduino functioning. Will later replicate on external LED pin 13 on rear panel of bot.
  *      3 - RGB LED
  *            Pulses green through bodywork when M-O is powered ON but asleep.
- *            Pulses RED if internal temp over 84˚
+ *            Pulses RED if internal temp over 85˚
  *            Could be RED when battery is low.
  *            BLUE color is still unused. Maybe that will be low battery color.
  *      4 - Red Siren Lamp       

@@ -1,4 +1,8 @@
 
+/*
+ * Function to update the blinking LED that indicates processor is running.
+ */
+ 
 void blinkRunningLED() {
   // check to see if it's time to blink the LED; 
           // meaning, is the difference between the current time and last time you blinked the LED

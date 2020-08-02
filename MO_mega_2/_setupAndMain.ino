@@ -38,7 +38,8 @@ const long BLINK_INTERVAL = 100;                // interval at which to blink (m
   unsigned long previousBlinkLEDMillis = 0;       // will store last time LED was updated
 //  float dt = 0;
   int frame = 0;                                  // used to track frame in blink pattern       
-  unsigned long previousEyeMillis = 0;     
+  unsigned long previousEyeMillis = 0;
+  unsigned long nextSleepEmote = 0;     
 
 //unsigned long timer = 0;                    // was used to play audio in 3 second intervals.
                                             // don't believe it's used anymore
@@ -124,6 +125,8 @@ void setup() {
 
 //  display.clearDisplay();
 //  display.display();
+
+  Serial.println("\n    MO-2 SETUP ROUTINE COMPLETE\n");
 } // end SETUP
 
 
@@ -136,11 +139,12 @@ void loop() {
     // f2
     updateEyes();
 
-    /* pseudocode for random snorePurr:
-     *  if !isAwake {
-     *      has it been more than 60 * 1000 millis since previousSnoreMillis
-     *          if so, call a random # to decide, should we play track-2
-    */
+    if (isReady && !isAwake) {
+      // sleeping routine in f2
+      runSleepingBehaviors();
+    }
+
+
 
     /*
      * Re-read about State Machine. 
