@@ -69,6 +69,22 @@ String message;                             // for received I2C message
 
   int nextRandomEyeMove = 2;
 
+  // TODO - might develop a list of all the sound files, i.e.
+  int startUpChime = 1;
+  int chargedStartUp = 2;
+  int sleepSnore = 3; 
+  int moName = 4;
+  int yips6 = 5;
+  int yipPeek = 6;
+  int whatIsThat = 7;
+  int yips2 = 8;
+  int thereDone = 9;
+  int notAgain = 10;
+  int huh = 11;
+  int whoa6 = 12;
+  
+  
+
 //_____________________________________________
 // declare objects
 SoftwareSerial mySoftwareSerial(10, 11);    // RX, TX
@@ -116,7 +132,7 @@ void setup() {
   myDFPlayer.volume(20);          //Set volume value. From 0 to 30
                                   // I found anecdotes stating the .volume() method in the loop can cause up to 100ms delay.
                                   // https://reprage.com/post/dfplayer-mini-cheat-sheet
-  myDFPlayer.play(1);             //Play the first mp3. This tells me Mega-2 has started up.
+  myDFPlayer.play(startUpChime);             //Play the first mp3. This tells me Mega-2 has started up.
 
                                   // when Mega-1 is ready, it will tell Mega-2 to play Wall-e startup chime.
 

@@ -45,7 +45,7 @@ void runSleepingBehaviors() {
 
     if (millis() > nextSleepEmote) {
       // simplified form always snores for now
-      myDFPlayer.play(3);
+      myDFPlayer.play(sleepSnore);
 //      Serial.print("Snore at "); Serial.print(millis());
 
 //      long snoreDelay = (long)((random(1,7)) * 30000);
@@ -63,4 +63,28 @@ void runSleepingBehaviors() {
 
 void playEmote(String emo) {
   Serial.print("MO-2 received command to perform emote "); Serial.println(emo);
+
+  // #8
+  if ( emo == "emo:huh" ) {
+      // play sound
+      myDFPlayer.play(huh);
+
+      // animate eyes
+//      drawEyes(wowEyes, 0, -4);
+//      delay(800);
+//      drawEyes(56,4,0,-4,32);
+//      blankScreen();
+//      delay(100);
+//      drawEyes(baseEyes, 0, 0);
+
+      // or more simply
+      huhReaction();
+
+      eyeState = "none";                      // not sure if this will be used going forward ??
+      previousEyeMillis = millis();
+      nextRandomEyeMove = (int)random(4,12);
+
+      message = "";
+  }
+  
 }

@@ -231,7 +231,7 @@ void setup() {
   if (!startupDidFail) {
       isReady = true;                                 // set isReady state and send to listeners
       sendMessageToAllListeners("ready:1");
-      Serial.println("M-O STARTUP ROUTINE COMPLETE - State: isReady\n");
+      Serial.println("\nM-O STARTUP ROUTINE COMPLETE - State: isReady\n");
 
       // TODO - set LED pulse to Green
       

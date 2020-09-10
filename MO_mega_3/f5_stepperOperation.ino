@@ -55,6 +55,9 @@ void updateSteppers() {
              *      right would be A postive & C negative
             */
 
+            // This is incorrect. A and C and on the side, meaning driving fore & aft,
+            //    B and D and back and front, meaning driving side to side.
+
       myStepperA.setSpeed(17);                       // added from sample
       myStepperC.setSpeed(17);
       myStepperB.setSpeed(17);
@@ -78,35 +81,39 @@ void updateSteppers() {
           //    In practice, I can't get all 4 steppers functioning in the same sketch, I believe because it's drawing
           //    more current than power supply can provide.
           
-          stepperFrame = 0;
-//          stepperFrame = (int)random(0,2);
-           switch(stepperFrame) {
-              case 0:
-                myStepperA.step(stepsToMove); 
-//                myStepperC.step(-stepsToMove);
-                break;
-              case 1:
-                myStepperB.step(stepsToMove); 
-//                myStepperD.step(-stepsToMove); 
-                break;
-              case 2:
-                myStepperC.step(stepsToMove); break;
-              case 3:
-                myStepperD.step(-stepsToMove); break;
-            } // end SWITCH
-
-            // this is currently written to only run frames 0 and 1, meaning only steppers A and B are moving.
+//          stepperFrame = 0;
+////          stepperFrame = (int)random(0,2);
+//           switch(stepperFrame) {
+//              case 0:
+//                myStepperA.step(stepsToMove); 
+////                myStepperC.step(-stepsToMove);
+//                break;
+//              case 1:
+//                myStepperB.step(stepsToMove); 
+////                myStepperD.step(-stepsToMove); 
+//                break;
+//              case 2:
+//                myStepperC.step(stepsToMove); break;
+//              case 3:
+//                myStepperD.step(-stepsToMove); break;
+//            } // end SWITCH
+//
+//            // this is currently written to only run frames 0 and 1, meaning only steppers A and B are moving.
 //            (stepperFrame >= 1) ? (stepperFrame = 0) : (stepperFrame += 1);        //  if at end of animation loop, then reset to beginning
 
           }
-//      myStepperA.step(stepsToMove);
-//      delay(100);
-//      myStepperC.step(-stepsToMove);
-//      delay(100);
-////        myStepperB.step(stepsToMove);
-//      delay(100);
-////        myStepperD.step(-stepsToMove);
-//      delay(100);
+
+    // YAY! With a proper 5V, 1.2A worth of power from DC bench supply, now all 4 motors run
+  
+          // raw stepper commends for testing:
+      myStepperA.step(stepsToMove);
+      delay(100);
+      myStepperC.step(-stepsToMove);
+      delay(100);
+        myStepperB.step(stepsToMove);
+      delay(100);
+        myStepperD.step(-stepsToMove);
+      delay(100);
 //      delay(2);                                     // delay seems needed in order to get consistent motion
                                                   // but I don't like the idea of delay statements slowing down the loop
                                                   // will need to replace with a millis() funciton

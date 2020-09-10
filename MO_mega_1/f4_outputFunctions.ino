@@ -76,7 +76,7 @@ void updatePulsingLED() {
   //  **  LATER we can use this to indicate low system battery or batteries **
 //  desiredColor = mpu6050Temperature > 90 ? red : green;           // This works.
 
-  desireColor = tempIsHigh ? red : green;               // changed to decide based on bool set by mpu6050
+  desiredColor = tempIsHigh ? red : green;               // changed to decide based on bool set by mpu6050
   // Soon setting the color will be moved out of this function.
   
   // For some reason, using pins 9 or 10 would freeze sketch, so RGB now on 7, 8 & 11

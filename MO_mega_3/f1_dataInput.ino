@@ -8,11 +8,12 @@
 
 // *1A --------------------------------- Receive I2C message ---------------------------------
 void receiveEvent(int bytes) {                        // called when message received on I2C
+  Serial.println("Incoming Message:");
   message = "";                                         // clear old message
   while(Wire.available()) { 
       message += (char)Wire.read();                     // read chars from Wire and concat to String
   }
-//  Serial.println("I2C Message received: " + message);
+  Serial.println("I2C Message received: " + message);
 
 //  if(message == "SYNC") {
 //    frame = 0;
@@ -31,12 +32,12 @@ void receiveEvent(int bytes) {                        // called when message rec
       //        Alternately, Mega-1 could broadcast state every minute (or so) to make sure everyone is on the same page.
       //      Method 1 might result in less traffic though. Upon Mega-1 hearing "query" it would broadcast a set of states.
       
-//        Serial.println("I2C message says MO is asleep");
+        Serial.println("I2C message says MO is asleep");
         isAwake = false;
 
     } else if (message == "1") {     // message was 'awake:1'
 
-//      Serial.println("I2C message says MO is awake");
+      Serial.println("I2C message says MO is awake");
       isAwake = true;
       
       // I mean, in theory, Mega-3 should not do anything unless awake:1 AND ready:1

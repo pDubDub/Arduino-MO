@@ -10,7 +10,7 @@ void sendToI2CSlave(String command, int slave) {
     // slave 1 = MO-2, which handles sound and eyes
     // slave 2 = MO-3, which runs the BBR
     
-    Wire.beginTransmission(slave);   // transmit to device 1
+    Wire.beginTransmission(slave);   // transmit to device number 
     command.toCharArray(message, 8);
     Wire.write(message);     // send data to other Arduinos
     Wire.endTransmission();  // stop transmitting

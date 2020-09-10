@@ -18,7 +18,7 @@ const long BLINK_INTERVAL = 100;            // interval at which to blink (milli
 //const int SERVO_THROW = 160;         // how far does servo 1 move                             *4
 
 const int STEPS_PER_REV = 2048;       // change this to fit the number of steps per revolution  *7
-const int rolePerMinute = 1;          // Adjustable range of 28BYJ-48 stepper is 0~17 rpm
+const int rpm = 1;          // Adjustable range of 28BYJ-48 stepper is 0~17 rpm
 
 //_____________________________________________
 // declare variables
@@ -89,12 +89,14 @@ void setup() {
   
   pinMode(LED_BUILTIN, OUTPUT);                           // for internal LED blink           *2
 
-  myStepperA.setSpeed(rolePerMinute);       // front
-  myStepperB.setSpeed(rolePerMinute);       // right
-  myStepperC.setSpeed(rolePerMinute);       // back
-  myStepperD.setSpeed(rolePerMinute);       // left
+  // TODO - we appear to be calling .setSpeed() both in setup() and in updateSteppers()
 
-//  Serial.println("Mega-3 BBR setup complete.");
+  myStepperA.setSpeed(rpm);       // front
+  myStepperB.setSpeed(rpm);       // right
+  myStepperC.setSpeed(rpm);       // back
+  myStepperD.setSpeed(rpm);       // left
+
+  Serial.println("\n    MO-3 SETUP ROUTINE COMPLETE\n");
 
   // TODO - I'm really starting to think at the end of this setup, Mega-3 should query Mega-1 for ready and awake states.
   
@@ -112,15 +114,28 @@ void loop() {
   // Only run the controller once the time interval has passed
   if (nextTime < millis()) {
     nextTime = millis() + 10;           // runs loop every 10 ms (10ms = 100Hz)
-    angle = getAngle();
-    motorOutput = PID(target, angle);
-    moveMotors(motorOutput);
+    // pseudocode:
+    //    angle = getAngle();           // angle is the current angle, so getAngle() would be to query 9250
+    //    motorOutput = PID(target, angle);
+    //    moveMotors(motorOutput);
+
+    
   }
 
   
   // f5 - stepper motors
   if (isAwake) {
       updateSteppers();
+  } else {
+    // DONE - Yes! This will stop power draw by stepper controllers when we want the motors to stop.
+    //    Otherwise, motors continued to draw 0.3A/ea, even when not moving.
+
+    for (int i = 22; i <44; i++) {
+      digitalWrite(i, LOW);
+    }
   }
+
+  // TODO - for some reason, current config with 3 Megas, 6050 AND the 9250 (unused), Mega-1 will freeze.
+  //    Removing 9250 from i2c circuit appears to fix the problem for now.
 
 } // end main LOOP

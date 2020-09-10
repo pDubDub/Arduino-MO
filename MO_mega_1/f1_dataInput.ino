@@ -14,10 +14,24 @@
 
 // *1A --------------------------------- the IR Remote ---------------------------------
 void readFromIRRemote() {
-  if (irrecv.decode(&results)) {                                // have we received an IR signal?
-    translateIR(); 
-    irrecv.resume(); // receive the next value
-  }  
+
+  if ((!isReady) || (updateLCDframe < 0)) {
+      // the intent here was to make sure he's ready and 'started up' before accepting commands (too early)
+      // but in practice, it seems to still accept the command, but simply doesn't act on it until these conditions are met.
+      // Sort of just 'buffers' the command.
+      
+//      Serial.println("IR ignored");
+      
+      return;
+  } else {
+    if (irrecv.decode(&results)) {                                // have we received an IR signal?
+      
+//      Serial.println("IR accepted");
+      
+      translateIR(); 
+      irrecv.resume(); // receive the next value
+    }
+  }
 }
 
 void translateIR() {                        
@@ -288,6 +302,9 @@ void read6050imu() {
   //   changed 2nd parameter in .requestFrom() line above from 6 to 8 to get temperature data
   mpu6050Temperature = Wire.read()<<8 | Wire.read(); // reading registers: 0x41 (TEMP_OUT_H) and 0x42 (TEMP_OUT_L)
   mpu6050Temperature = (mpu6050Temperature / 340.00 + 36.53) * 9/5 +32 -3.4; // -3.4 is my manual calibration
+
+  // TODO - I think I need same NaN detection and handling on temperature register
+  
   if (mpu6050Temperature > ALERT_TEMPERATURE) {
     tempIsHigh = true;
   } else {
