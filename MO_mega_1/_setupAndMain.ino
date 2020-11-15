@@ -34,6 +34,16 @@
   float PULSE_PERIOD = 1.50;            // 1.5 seconds is chosen speed  
 
 //____________________ declare variables ____________________
+
+//  enum BotState { 
+//    unknown,se
+//    starting,
+//    failed,
+//    sleeping,
+//    awake
+//    };
+//    // sleeping would be standby
+//  BotState readyState = unknown;
   
   // 1B - Bluetooth
   String lastCommand = "";
@@ -53,6 +63,10 @@
   unsigned long previousLCDMillis = 0;      // similar function for LCD screen                  *4
 //  unsigned long i2Ctimer = 0;                       // 3 - millis timer for demonstration i2c functionality
   unsigned long previousTestServoMillis = 0;
+  unsigned long previousReadyUpdate = 0;
+      // I'm using this to periodically send ready state to slaves at present, rather than having them query
+  unsigned long previousSync = 0;
+      // using this to periodically sync Megas. Could probably combine with ReadyUpdate.
 
   // mpu6050:
   const int mpu6050Address = 0x68; // MPU6050 I2C address
@@ -127,10 +141,17 @@ void setup() {
   *     • don't accept IR or BT commands is !isReady
   */
 
+  // new:
+//  readyState = starting;
+
+  // old/vestigial:
   startupDidFail = false;
   isReady = false;
   isAwake = false;
 
+  // Since these are somewhat exclusive states (can't be awake and not ready), should this really be one enum variable?
+
+  
   Serial.begin(9600);         // this used to be 11520. don't know why. changed it to 9600
 
   Serial.println("\nMICROBE OBLITERATOR STARTUP ROUTINE INITIATED");
@@ -228,27 +249,47 @@ void setup() {
   calculate_IMU_error();                          // moved mpu6050 calibration to end of setup to observe difference.
   delay(20);
 
-  if (!startupDidFail) {
-      isReady = true;                                 // set isReady state and send to listeners
-      sendMessageToAllListeners("ready:1");
-      Serial.println("\nM-O STARTUP ROUTINE COMPLETE - State: isReady\n");
 
-      // TODO - set LED pulse to Green
-      
-  } else {
-      Serial.println("**** STARTUP ROUTINE FAILED ****");
 
-      // TODO - set LED pulse to Orange
+  if (startupDidFail) {            // readyState == failed)
+    // causeed if a setup failure sets this readystate
+    Serial.println("**** STARTUP ROUTINE FAILED ****");
+
+    // TODO - set the pulse to Orange, maybe at a faster rate?
+  } else {                        
+    // if not failed, then startup must have been successful
+//    readyState = sleeping;         // sleeping is standby state
+
+    // these are vestigial old commands
+    isReady = true;                                 // set isReady state and send to listeners
+    sendMessageToAllListeners("ready:1");
+    Serial.println("\nM-O STARTUP ROUTINE COMPLETE - State: isReady\n");
+
+    // Added command for startup chime here.
+    // Previously, Mo-2 would play chime when it received "ready:1"
+    // Now it only plays chime at the end of Mo-1 setup()
+    delay(1000);
+    sendToI2CSlave("play-0", 1);                    
+
+    // TODO - set LED pulse to Green
   }
-
-
-  
 
 } // end SETUP
 
 
 //____________________ MAIN LOOP ( runs continuously ) _________________________
 void loop() {
+
+  // This was one solution to slaves rebooting and thus never hearing the ready:1 command
+  // It sends the ready state once per minute.
+//  if ((millis() - previousReadyUpdate) > 60000) {
+//    if (isReady) {
+//      sendMessageToAllListeners("ready:1");
+//    } else {
+//      sendMessageToAllListeners("ready:0");
+//    }
+//  }
+  // This actually does not work as intended, at present, because Mo-2 plays the startup chime anytime it hears "ready:1"
 
   // *1A - IR Remote control
   readFromIRRemote();
@@ -334,8 +375,11 @@ void loop() {
   // TODO - Testing: It does sort of feel like iOS app can't do anything while the servo is still moving.
   //    This may be because of the delay built into the iOS app when it comes to the slider, so that app doesn't flood
   //    bluetooth to Arduino.
+
+ 
+if (isAwake != previousIsAwake) {
+// All this appears to do is set previousIsAwake when there is a change
   
-  if (isAwake != previousIsAwake) {
   /* BUG - something causes isAwake or the LCD to go to 'sleeping' after about 20 seconds
    *  
    *  moved 4B above into an IF that solves it for the strobe, but LCD continued.
@@ -349,7 +393,7 @@ void loop() {
 //    Serial.print("isAwake state changed to: ");
 //    Serial.println(isAwake);
     previousIsAwake = isAwake;
-  }
+}
 
 // 4C -- rear panel operation message LED screen
 updateRearLEDscreen();

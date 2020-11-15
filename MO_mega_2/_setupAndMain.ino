@@ -20,6 +20,15 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 //_____________________________________________
 // declare constants for pin numbers
 
+// 9 through 11 will be reserved for Mega to LED screen
+// as well as AO through A4
+
+//const int MP3_RX = 5;
+//const int MP3_TX = 6;
+const int LED_OE = 9;
+const int LED_LAT = 10;
+const int LED_CLK = 11;
+
 //_____________________________________________
 // declare other constants
 const int I2C_ADDRESS = 1;                      // I2C address. Master would be 0, slaves would be 1 and 2
@@ -87,15 +96,18 @@ String message;                             // for received I2C message
 
 //_____________________________________________
 // declare objects
-SoftwareSerial mySoftwareSerial(10, 11);    // RX, TX
+//SoftwareSerial mySoftwareSerial(MP3_RX, MP3_TX);    // RX, TX
                                             // when we switch from Uno to Mega, then this might switch to Serial1
 DFRobotDFPlayerMini myDFPlayer;
+
+
 
 //_____________________ SETUP ( runs once )________________________
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
-  mySoftwareSerial.begin(9600);                           // for audio player                 *3
+//  mySoftwareSerial.begin(9600);                           // for audio player                 *3
+  Serial1.begin(9600);
 
   pinMode(LED_BUILTIN, OUTPUT);                           // for internal LED blink           *2
 
@@ -121,7 +133,8 @@ void setup() {
   Serial.println(F("DFRobot DFPlayer Mini Demo"));
   Serial.println(F("Initializing DFPlayer ... (May take 3~5 seconds)"));
 
-  if (!myDFPlayer.begin(mySoftwareSerial)) {  //Use softwareSerial to communicate with mp3.
+  if (!myDFPlayer.begin(Serial1)) {  //Use softwareSerial to communicate with mp3.
+      // "mySoftwareSerial" replaced with Serial1 when moving from Uno to Mega.
     Serial.println(F("Unable to begin:"));
     Serial.println(F("1.Please recheck the connection!"));
     Serial.println(F("2.Please insert the SD card!"));
@@ -143,6 +156,10 @@ void setup() {
 //  display.display();
 
   Serial.println("\n    MO-2 SETUP ROUTINE COMPLETE\n");
+
+  // TODO - if Mo-2 is restarted after Mo-1 is running, Mo-2 will not know true state of isReady and isAwake.
+  //    We really need to get that information somehow, sometime.
+  
 } // end SETUP
 
 

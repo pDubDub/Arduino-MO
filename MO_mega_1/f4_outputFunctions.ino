@@ -32,16 +32,18 @@ void blinkRunningLED() {
         digitalWrite(LED_BUILTIN, LOW); break;
     } // end SWITCH
 
-    // TODO - I think it would be nice if every once in a while, Mega-1 sends i2C message to Mega-2 and 3 
-    // to sync this cycle. But not this often.
-    
-//    if (frame == 12) {
-//        sendToI2CSlave("SYNC",1);
-//    }
 
-    // took this out. For some reason after implementing, sound commands no longer worked.
+    // Sends blink frame sync message via i2C message to Mega-2 and 3 
+    //   It originally did it every frame 12. Added timer so it's only after 60 seconds.
+    if ((currentMillis - previousSync > 60000) && (frame == 12)) {
+        sendToI2CSlave("SYNC",1);
+//        sendToI2CSlave("SYNC",2);
 
-    //  if at end of animation loop, then reset to beginning (condensed from IF-ELSE to TERNARY
+        previousSync = currentMillis;
+    }
+
+
+    //  if at end of animation loop, then reset to beginning (condensed from IF-ELSE to TERNARY)
     (frame >= 12) ? frame = 0 : frame += 1;
   } // end of timing IF 
 } // end of blinkRunningLED()

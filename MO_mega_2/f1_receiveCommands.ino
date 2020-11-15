@@ -9,12 +9,14 @@ void receiveEvent(int bytes) {                        // called when message rec
   }
   Serial.println("I2C Message received: " + message);
 
-  //  if(message == "SYNC") {
-  //    frame = 0;
-  //  }
+    if(message == "SYNC") {
+      frame = 12;
+    }
   // BUG - this IF was preventing sound files from playing.
   // ERROR FOUND -> accidentally used a single = instead of a double ==
-  // TODO - try this again
+  // It works now.
+
+
 
   // TODO - rebuild sequence below. Put in proper order. Start to accept "emo:" messages and route them to state functions.
 
@@ -26,7 +28,9 @@ void receiveEvent(int bytes) {                        // called when message rec
     playEmote(message);
 
 
-
+  } else if (message == "play-0") {
+    // new way to play startup chime, only at the end of Mo-1 setup() 
+    myDFPlayer.play(chargedStartUp);
 
   } else if (message.startsWith("play") && isAwake) {
     // decode messages from MO-1 in the form of "play-1" - but only when awake
@@ -62,6 +66,8 @@ void receiveEvent(int bytes) {                        // called when message rec
         //        isAwake = false;
         //        myDFPlayer.play(3);                                     // play the snore  track 3
         // TODO - eventually spin this off into a whole "sleeping" behavior funcion, which includes random time interval triggered snore sound.
+      
+
       }
     } else if (message == "1") {
       // isAwake true
@@ -73,6 +79,9 @@ void receiveEvent(int bytes) {                        // called when message rec
       if (isReady) {
         myDFPlayer.play((int)random(5, 12));     // play a random yip track 5 to 12 to say he's awake
         // TODO - eventually spin this off, into a whole "waking up" behavior function
+
+        // TODO - there is a bug here. If Mo-2 has been restarted after Mo-1, it does not know isReady == true,
+        //    so it does not play an awakening sound.
       }
     }
   } else if (message == "speak") {
@@ -84,7 +93,8 @@ void receiveEvent(int bytes) {                        // called when message rec
 
   } else if (message == "ready:1") {
     isReady = true;
-    myDFPlayer.play(chargedStartUp);                       // play startup chime
+//    myDFPlayer.play(chargedStartUp);                       // play startup chime
+    // Changed this to a play command at end of Mo-1 setup() instead of playing it here every time it heard ready:1 
     // TODO - these statement should enact local state changes too
   } else if (message == "ready:0") {
     isReady = false;
