@@ -21,8 +21,6 @@
   const int RGB_LED_BLUE = 11;
   const int ALERT_TEMPERATURE = 90;
 
-  const int A_SERVO = 44;               // this is a test servo, trying to control from iOS
-
 //____________________ declare other constants ____________________
 
   const long BLINK_INTERVAL = 100;            // interval at which to blink (milliseconds)         *4A
@@ -110,15 +108,23 @@
   Servo sirenLiftServo;               // create servo object to control a servo             *5
   Servo sirenSpinServo;               // continous servo                                    *5
   
-  MoServo servo1 = MoServo(44, 500, 2500, 1420);   // in microseconds
-
 //                  BS  E  D4 D5  D6 D7
   LiquidCrystal lcd(48, 49, 50, 51, 52, 53);                                             // *4
 
+  // direct connected test servo. Pin 12, Min 500, Max 2500, middle 1420 microseconds
+  MoServo servo1 = MoServo(12, 500, 2500, 1420);   // in microseconds
+  // BlueTooth mesasges become "servo1.commandTo(newCommand, 800)" which tells servo1 MoServo object where to go to.
+  // servo1.updateServo() call in loop moves the servo each cycle
+ 
+  
   Adafruit_PWMServoDriver pwmServoBoard_1 = Adafruit_PWMServoDriver(0x40);
   int SERVOMIN = 100;   // right
   int SERVOMID = 290;   // center
   int SERVOMAX = 480;   // left
+
+  int MIN_MICRO = 1000;
+  int MAX_MICRO = 2000;
+  
   int servo1pos = 290;
   int servo2pos =290;
   bool servo1cw = true;
@@ -404,8 +410,20 @@ updateSirenLamp();
 
 //pwmServoBoard_1.setPWM(1, 0, servo1pos);
 //pwmServoBoard_1.setPWM(0, 0, servo1pos);
+
+// TODO - every 2 seconds, commends servo1.commandTo(x)
+//Serial.print("Servo12 is at: "); Serial.println(servo1.currentPosition);
+
+     
+
+      
+// THEN - command pwmServoBoard_1.setPWM(0, 0, servo1pos)
+pwmServoBoard_1.writeMicroseconds(0, servo1.currentPosition);
+
 //
-////Serial.print("Servo 1: "); Serial.println(servo1pos);
+// Change this to Servo0. Servo1 is the MoServo connected to pin 12, controlled by iOS.
+
+//Serial.print("Servo 1: "); Serial.println(servo1pos);
 //if (servo1cw == false) {
 //  servo1pos += 1;
 //} else {

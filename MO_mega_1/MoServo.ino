@@ -13,7 +13,8 @@ class MoServo {
           // INIT is the desired startup/neutral position, and may vary from servo to servo. First used was actually 1420.
         
         int lastCommand, currentCommand, nextCommand;                //  microseconds
-        int currentPosition;
+        
+        // 
 
 //        int currentSpeed;                 // ?
           // I think the solution to mixing commands lies in tracking speed (microseconds/milli-loop) as we do longer duration animations
@@ -32,6 +33,8 @@ class MoServo {
     public:
         Servo servo;
         int pin;
+
+        int currentPosition;        // was private. moved to public for parallel direct/pvm servo testing.
         
         int newCommand;                   // should start at initialPosition
 
