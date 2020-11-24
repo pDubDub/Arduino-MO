@@ -58,7 +58,7 @@ void toggleSirenState() {
     Serial.print("IR remote: 0 = Siren Lamp ");
     Serial.println(sirenOn ? "ON" : "OFF");
     lcd.setCursor(0,0);
-    lcd.print(sirenOn ? "Contaminant " : "All Clean   ");
+    lcd.print(sirenOn ? "Contaminant     " : "All Clean       ");
     sirenDidChange = true;
     if (sirenOn) {
       // tell Mega-2 to play sound that goes with red light

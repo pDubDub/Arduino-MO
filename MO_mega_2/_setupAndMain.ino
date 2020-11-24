@@ -2,20 +2,26 @@
 // import statements
 #include "Arduino.h"
 #include "DFRobotDFPlayerMini.h"
-#include "SoftwareSerial.h"                 // when we switch from Uno to Mega, then this might switch to Serial1
+//#include "SoftwareSerial.h"                 // when we switch from Uno to Mega, then this might switch to Serial1
 #include <Wire.h>                           // built in Arduino library for I2C
 
 // OLED code from Adafruit, store in my workingOLED128x32_i2c sketch
-#include <SPI.h>
+//#include <SPI.h>
 #include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+//#include <Adafruit_SSD1306.h>
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 32 // OLED display height, in pixels
+// for Adafruit 3mmpitch 64x32 LED matrix panel
+#include <RGBmatrixPanel.h>
+
+#define OLED_WIDTH 128 // OLED display width, in pixels
+#define OLED_HEIGHT 32 // OLED display height, in pixels
+
+#define LED_WIDTH 64
+#define LED_HEIGHT 32
 
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
 #define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+//Adafruit_SSD1306 display(OLED_WIDTH, OLED_HEIGHT, &Wire, OLED_RESET);
 
 //_____________________________________________
 // declare constants for pin numbers
@@ -28,6 +34,16 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 const int LED_OE = 9;
 const int LED_LAT = 10;
 const int LED_CLK = 11;
+
+#define CLK 11 // USE THIS ON ARDUINO MEGA
+#define OE   9
+#define LAT 10
+#define A   A0
+#define B   A1
+#define C   A2
+#define D   A3
+
+RGBmatrixPanel matrix(A, B, C, D, CLK, LAT, OE, false, 64);
 
 //_____________________________________________
 // declare other constants
@@ -69,12 +85,12 @@ String message;                             // for received I2C message
 
   // TODO - remeasure these eyes in Photoshop, with proper understanding of sep value
   // declaring of eye expressions/frames
-  Expression sleepyEyes = {14, 2, 12};
-  Expression baseEyes = {26, 10, 22};
-  Expression narrowedBaseEyes = {26, 10, 20};
-  Expression bigEyes = {18, 18, 22};
-  Expression squintyEyes = {30, 6, 22};             // for random 'half-blink'
-  Expression wowEyes = {30, 32, 24};
+  Expression sleepyEyes = {7, 1, 6};        // width, height, sep
+  Expression baseEyes = {13, 5, 11};
+  Expression narrowedBaseEyes = {13, 5, 10};
+  Expression bigEyes = {9, 9, 11};
+  Expression squintyEyes = {15, 3, 11};             // for random 'half-blink'
+  Expression wowEyes = {15, 16, 12};
 
   int nextRandomEyeMove = 2;
 
@@ -116,18 +132,27 @@ void setup() {
 
   // setup code for temporary mini-OLED:
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {      // Address 0x3C for 128x32
-    Serial.println(F("SSD1306 allocation failed"));
-    for(;;);                                            // Don't proceed, loop forever
-  }
-  display.clearDisplay();
-  display.display();
+//  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {      // Address 0x3C for 128x32
+//    Serial.println(F("SSD1306 allocation failed"));
+//    for(;;);                                            // Don't proceed, loop forever
+//  }
+//  display.clearDisplay();
+//  display.display();
   
-  cent_x = display.width()/2;                 // 64
-  cent_y = display.height()/2 + 4;           // 16 + 5 = 20
+//  cent_x = display.width()/2;                 // 64
+//  cent_y = display.height()/2 + 4;           // 16 + 5 = 20
   // all int values for eyes are x2, as OLED is 128x32, but fullsize will be 64x32(26).
   //      i.e. base eyes on full size will be 13 x 5 with sep 24
   //                  vs OLED eyes as 26,10,22
+
+  // this is the center of the screen. The center of his direction of vision. If we adjust this value, he looks left/right, up/down.
+  cent_x = 32;
+  cent_y = 20;
+
+  // the actual 64x32 LED matrix
+  matrix.begin();
+  // fill the screen with 'black'
+  matrix.fillScreen(matrix.Color333(0, 0, 0));
 
   Serial.println();
   Serial.println(F("DFRobot DFPlayer Mini Demo"));

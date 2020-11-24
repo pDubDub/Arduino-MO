@@ -3,6 +3,8 @@
  *  
  *  The tiny OLED is 128 x 32.
  *  The full size on will be 64 x 32 (but only using the bottom 64 x 26). All dimensions here are x2.
+ *  
+ *  3-bit matrix.Color333(5, 4, 0)) is roughly equivalent to 4-bit matrix.Color444(10, 8, 0))
  */
 
 void updateEyes() {
@@ -32,6 +34,11 @@ void updateEyes() {
     previousEyeMillis = millis();
     nextRandomEyeMove = (int)random(4,12);
   }
+
+//  matrix.fillRect(18, 20, 10, 6, matrix.Color444(10, 8, 0));
+//  matrix.fillRect(36, 20, 10, 6, matrix.Color444(10, 8, 0));
+
+      // could also try matrix.ColorHSV(hue, sat, val, gammaCorrected)
 }
 
 // ******** functions:
@@ -39,60 +46,110 @@ void drawEyes(struct Expression look, int x, int y) {
     // expression is an eye shape
     // x,y are offsets from center of eyes (y=-4 is actually center vertically)
 
-    display.clearDisplay();                 // clears the buffer
-    
-    display.fillRoundRect(
+    matrix.fillScreen(matrix.Color333(0, 0, 0));      // matrix does not have a .clearDisplay() method
+    // on OLED, fillRouchRect() wiht corner radius of 2 looked really good
+    // on LED matrix, I've overlayed a rounded rect over a dimmer 0 radius rect for a little aliasing
+    matrix.fillRect(
         cent_x + x - look.eye_sep - look.eye_width/2,
         cent_y + y - (look.eye_height / 2),
         look.eye_width,
         look.eye_height,
-        2,                                  // corner radius
-        SSD1306_WHITE);
-    display.fillRoundRect(
+        matrix.Color444(2, 2, 0)
+        );
+      matrix.fillRoundRect(
+        cent_x + x - look.eye_sep - look.eye_width/2,
+        cent_y + y - (look.eye_height / 2),
+        look.eye_width,
+        look.eye_height,
+        1,                                  // corner radius
+        matrix.Color444(10, 8, 0)
+        );
+      matrix.fillRect(
         cent_x + x + look.eye_sep - look.eye_width/2,
         cent_y + y - (look.eye_height / 2),
         look.eye_width,
         look.eye_height,
-        2,
-        SSD1306_WHITE);
-    display.display();
+        matrix.Color444(2, 2, 0)
+        );
+      matrix.fillRoundRect(
+        cent_x + x + look.eye_sep - look.eye_width/2,
+        cent_y + y - (look.eye_height / 2),
+        look.eye_width,
+        look.eye_height,
+        1,
+        matrix.Color444(10, 8, 0)
+        );
+//
+//    display.clearDisplay();                 // clears the buffer
+//    display.fillRoundRect(
+//        (cent_x + x - look.eye_sep - look.eye_width/2) * 2,
+//        cent_y + y - (look.eye_height / 2),
+//        look.eye_width * 2,
+//        look.eye_height * 2,
+//        2,                                  // corner radius
+//        SSD1306_WHITE);
+//    display.fillRoundRect(
+//        cent_x + x + look.eye_sep - look.eye_width/2,
+//        cent_y + y - (look.eye_height / 2),
+//        look.eye_width,
+//        look.eye_height,
+//        2,
+//        SSD1306_WHITE);
+//    display.display();
+
+    
     
     delay(60);
 }
 
 // TODO - might want to add a height/thickness value?
 void drawLineWithOffset(int y) {
-  display.clearDisplay();
-  display.fillRect(0, cent_y + y, display.width(), 4, SSD1306_WHITE);
-  display.display();
+//  display.clearDisplay();
+//  display.fillRect(0, (cent_y + y) * 2, display.width(), 4, SSD1306_WHITE);
+//  display.display();
 
+  matrix.fillScreen(matrix.Color333(0, 0, 0));
+  matrix.fillRect(0, cent_y + y, matrix.width(), 2, matrix.Color444(10, 8, 0));
+  
   delay(60);
 }
 
 // retained old function, for times when you want to manually code a single frame expression
 void drawEyes(int width, int height, int x, int y, int separation) {
-  display.clearDisplay();
+    // x is the center of eyes
+//  display.clearDisplay();
   // 0,0 is top left
   // x, y, w, h, radius, color  
-  display.fillRoundRect(cent_x + x - separation - width/2, cent_y + y - (height / 2), width, height, 2, SSD1306_WHITE);
-  display.fillRoundRect(cent_x + x + separation - width/2, cent_y + y - (height / 2), width, height, 2, SSD1306_WHITE);
-  display.display();
+//  display.fillRoundRect(cent_x + x - separation - width/2, cent_y + y - (height / 2), width, height, 2, SSD1306_WHITE);
+//  display.fillRoundRect(cent_x + x + separation - width/2, cent_y + y - (height / 2), width, height, 2, SSD1306_WHITE);
+//  display.display();
+
+  matrix.fillScreen(matrix.Color333(0, 0, 0));
+  matrix.fillRoundRect(cent_x + x - separation - width/2, cent_y + y - (height / 2), width, height, 1, matrix.Color444(10, 8, 0));
+  matrix.fillRoundRect(cent_x + x + separation - width/2, cent_y + y - (height / 2), width, height, 1, matrix.Color444(10, 8, 0));
+  
 }
 
 
 // for drawing two different eyes shapes. Note L & R are from viewer's perspective, not MO's.
 void drawSkewedEyes(int widthL, int heightL, int widthR, int heightR, int x, int y1, int y2, int separation) {
-  display.clearDisplay();
-  display.fillRoundRect(cent_x + x - separation - widthL/2, cent_y + y1 - (heightL / 2), widthL, heightL, 2, SSD1306_WHITE);
-  display.fillRoundRect(cent_x + x + separation - widthR/2, cent_y + y2 - (heightR / 2), widthR, heightR, 2, SSD1306_WHITE);
-  display.display();
+//  display.clearDisplay();
+//  display.fillRoundRect(cent_x + x - separation - widthL/2, cent_y + y1 - (heightL / 2), widthL, heightL, 1, SSD1306_WHITE);
+//  display.fillRoundRect(cent_x + x + separation - widthR/2, cent_y + y2 - (heightR / 2), widthR, heightR, 1, SSD1306_WHITE);
+//  display.display();
+
+  matrix.fillScreen(matrix.Color333(0, 0, 0));
+  matrix.fillRoundRect(cent_x + x - separation - widthL/2, cent_y + y1 - (heightL / 2), widthL, heightL, 1, matrix.Color444(10, 8, 0));
+  matrix.fillRoundRect(cent_x + x + separation - widthR/2, cent_y + y2 - (heightR / 2), widthR, heightR, 1, matrix.Color444(10, 8, 0));
 }
 
 
 // ********** eye animation sequences:
 void blankScreen() {
-  display.clearDisplay();
-  display.display();
+//  display.clearDisplay();
+//  display.display();
+
+  matrix.fillScreen(matrix.Color333(0, 0, 0));
 }
 
 void sleepingEyes() {
@@ -132,9 +189,9 @@ void halfBlink() {                                  // aka flinch, or RandomEyeM
 }
 
 void huhReaction() {
-  drawEyes(wowEyes, 0, -4);
+  drawEyes(wowEyes, 0, 0);
   delay(800);
-  drawEyes(56,4,0,-4,32);
+  drawEyes(23,4,0,-4,16);
   blankScreen();
   delay(100);
   drawEyes(baseEyes, 0, 0);
@@ -144,7 +201,7 @@ void skewedPeek() {
   drawEyes(sleepyEyes, 0, 2);
   delay(60);
   drawLineWithOffset(0);
-  drawSkewedEyes(26, 26, 26, 8, 0, 0, 4, 18);
+  drawSkewedEyes(13, 13, 13, 4, 0, 0, 2, 8);
   delay(500);
   drawEyes(wowEyes, 0, -4);
   drawEyes(baseEyes, 0, 0);
