@@ -177,17 +177,46 @@ void readFromBluetooth() {
       if (newCommand == "iOSOK") {
         Serial.println(" iOS app has connected via Bluetooth");
         Serial.println((String)" - Sending isAwake state and \"M-O Connected\" as confirmation back to iOS app");
-        Serial1.write(isAwake ? "awake:1" : "awake:0");                       // sending isAwake state… first?  
-            delay(50);                                                        // don't really know if delay is neccesary, but felt safe
+
+        // respond to iOS
         Serial1.write("M-O Connected");                                       // confirmation to iOS app
             delay(1000);
+        // send ready or not.
+        // I guess we never get here if notReady, so we really just need to convey to iOS if we are
+        //      ready:1 = sleeping
+        //      ready:2 = idle/parked
+        //      ready:3 = active/standing
         Serial1.write("ready:1");                                             // makes iOS app read "Microbe Obliterator Ready"
+                                                                              // and enabled control UI
+            delay(500);
+        Serial1.write(isAwake ? "awake:1" : "awake:0");                       // sending isAwake state… first?  
+            delay(50);                                                        // don't really know if delay is neccesary, but felt safe
+
+
+        // TODO - should send ready:1, ready:2 or ready:3 based on sleep, awake and standing states    
+//        Serial1.write("ready:1");                                             
 
         // Noticed that Bluetooth tutorial was originally using Serial1.print() 
         //    but have carelessly started using Serial.write()
         //    I've read that Serial1.print() is more intended to accept strings, whereas Serial1.write() is more geared towards 
         //    characters and numbers, but as I'm sending strings, it doesn't make a functional difference.
-        
+
+      // These three commands come from the iOS app Segmented Control
+      } else if (newCommand == "goSleep") {
+        Serial.println(" iOS command is \"goSleep\"");
+        if (isAwake) {
+          toggleAwakeState();
+        }
+      } else if (newCommand == "goIdle") {
+        Serial.println(" iOS command is \"GoIdle\"");
+        if (!isAwake) {
+          toggleAwakeState();
+        }
+      } else if (newCommand == "goActiv") {
+        Serial.println(" iOS command is \"goActive\"");
+        if (!isAwake) {
+          toggleAwakeState();
+        }
       } else if (newCommand == "sleep" || newCommand == "awake:0") {
         toggleAwakeState();                    // TODO - does this work, just toggling, or can I reach a state where sleep on app is triggering wake here?
       } else if (newCommand == "wake" || newCommand == "awake:1") {
