@@ -419,6 +419,7 @@ updateSirenLamp();
       
 // THEN - command pwmServoBoard_1.setPWM(0, 0, servo1pos)
 pwmServoBoard_1.writeMicroseconds(0, servo1.currentPosition);
+//pwmServoBoard_1.writeMicroseconds(0, 1500);
 
 //
 // Change this to Servo0. Servo1 is the MoServo connected to pin 12, controlled by iOS.
