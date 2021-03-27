@@ -61,9 +61,12 @@ const long BLINK_INTERVAL = 100;                // interval at which to blink (m
   
   unsigned long currentMillis = 0;                // these 4 varaibles used for runningLED
   unsigned long previousBlinkLEDMillis = 0;       // will store last time LED was updated
+  unsigned long previousEyeMillis = 0;
+  unsigned long lastEyeCenterMillis = 0;
+
 //  float dt = 0;
   int frame = 0;                                  // used to track frame in blink pattern       
-  unsigned long previousEyeMillis = 0;
+  
   unsigned long nextSleepEmote = 0;     
 
 //unsigned long timer = 0;                    // was used to play audio in 3 second intervals.
@@ -74,6 +77,9 @@ String message;                             // for received I2C message
   // eyes:
   int cent_x, cent_y;
   //  eye_width, eye_height, eye_sep;
+
+  int random_glance = 0;
+  int look_direction = 0;
 
   // my eye expression struct
   struct Expression {
@@ -194,7 +200,7 @@ void loop() {
     // f1
     blinkRunningLED();
 
-    // f2
+    // f5
     updateEyes();
 
     if (isReady && !isAwake) {
@@ -202,6 +208,16 @@ void loop() {
       runSleepingBehaviors();
     }
 
+    // building a feature to make eye center vary
+    currentMillis = millis();
+    if (currentMillis - lastEyeCenterMillis >= 1000) {
+//      Serial.println("Time to check glance");
+      lastEyeCenterMillis = currentMillis;
+
+      random_glance = (int)(random(1,10));
+//      Serial.print("Random glance = ");
+//      Serial.println(random_glance);
+    }
 
 
     /*

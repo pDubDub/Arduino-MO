@@ -12,6 +12,8 @@ void updateEyes() {
 
 
   if (isAwake && eyeState == "none" && ((millis() - previousEyeMillis) > (nextRandomEyeMove * 1000))) {
+    // this means he's awake, not doing an expression, and it's been a random delay since the last automatic expression
+        // now we should generate another random number, to see if he move eye-center, re-centers, or half-blinks 
     eyeState = "random";
   }
   
@@ -22,12 +24,12 @@ void updateEyes() {
       sleepingEyes();
     } else if (eyeState == "blinking") {
       blinkingEyes();
+    } else if (eyeState == "skewed") {          // IR button 3 = track 6 = "yip"
+      skewedPeek();
     } else if (eyeState == "huh") {             // IR button 8 = track 11 = 'huh'
       huhReaction();
     } else if (eyeState == "random") {
-      halfBlink();                              // this is a random-interval 'bored' reaction. would be nice if there were random reactions to pull from.
-    } else if (eyeState == "skewed") {          // IR button 3 = track 6 = "yip"
-      skewedPeek();
+      randomFlinch();                              // this is a random-interval 'bored' reaction. would be nice if there were random reactions to pull from.
     }
     
     eyeState = "none";
@@ -39,6 +41,27 @@ void updateEyes() {
 //  matrix.fillRect(36, 20, 10, 6, matrix.Color444(10, 8, 0));
 
       // could also try matrix.ColorHSV(hue, sat, val, gammaCorrected)
+}
+
+void randomFlinch() {
+  // this function called as random-interval 'bored' reaction
+  //    making him either randomly half-blink, move or re-center the eye center, or other future reactions
+  
+  halfBlink();    // temp filler reaction, until we get the random/switch functioning
+
+  /*
+   * generate a random int
+    switch(number)
+    {
+      case 0 ... 4:       // a range makes this reaction more common
+        break;
+      case 5:
+      default:
+    }
+   */
+
+   // cent_x is the value that we want to manipulate. 32 is center of the 64x32 matrix.
+   // we want to make sure that we always return cent_x back to 32.
 }
 
 // ******** functions:
