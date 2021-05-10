@@ -126,6 +126,10 @@ void loop() {
   // f5 - stepper motors
   if (isAwake) {
       updateSteppers();
+
+      // add an LED to show in test when awake
+      
+      
   } else {
     // DONE - Yes! This will stop power draw by stepper controllers when we want the motors to stop.
     //    Otherwise, motors continued to draw 0.3A/ea, even when not moving.

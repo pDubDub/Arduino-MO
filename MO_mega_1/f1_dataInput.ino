@@ -157,7 +157,7 @@ void writeToBLE(char value) {
 
 void readFromBluetooth() {
   currentMillis = millis();                               // gets current time
-  if (currentMillis - previousBTMillis >= 500) {         // only runs loop 0.5 seconds after last time - no delay()
+  if (currentMillis - previousBTMillis >= 500) {         // only runs loop 0.5 seconds after last time - no delay() function used
     previousBTMillis = currentMillis;
                  
     // reacting to various BT message from iOS app:

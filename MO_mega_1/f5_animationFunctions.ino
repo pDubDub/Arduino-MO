@@ -11,17 +11,22 @@ void updateSirenLamp() {
   if (sirenDidChange == true) {     // state change boolean, so these commands only run when there's change, not every loop cycle
     if (sirenOn == true) { 
       sirenSpinServo.write(100);                        // tells continuous servo to go (90 ~ stopped, 100 is pretty close to 60rpm)
-      sirenLiftServo.write(180);                        // sends lift servo to 'up' position
+      
+//      sirenLiftServo.write(180);                        // sends lift servo to 'up' position
+      pwmServoBoard_1.writeMicroseconds(1, 1800);         // lift servo on PWM board 1
         
         // TODO -- might replace with .writeMicroseconds() to get better control of throw limits.
         // should take about 1.2 seconds to deploy
 
-      digitalWrite(RED_LAMP_LED, HIGH);        // and red LED on
+      digitalWrite(RED_LAMP_LED, HIGH);                 // and red LED on
     } else {
-      sirenSpinServo.writeMicroseconds(1454);        //          fine tuned for zero rotation of FS90R c-r servo
-      sirenLiftServo.write(0);                       //          retracts servo1
-      digitalWrite(RED_LAMP_LED, LOW);               // and red LED off
+      sirenSpinServo.writeMicroseconds(1454);           // fine tuned for zero rotation of FS90R c-r servo
+      
+//      sirenLiftServo.write(0);                        // retracts servo1
+      pwmServoBoard_1.writeMicroseconds(1, 1200);       // lift servo on PWM board 1
+      
+      digitalWrite(RED_LAMP_LED, LOW);                  // and red LED off
     }
-    sirenDidChange = false;         // reset DidChange boolean so IF won't run again next loop
+    sirenDidChange = false;                             // reset DidChange boolean so IF won't run again next loop
   }
 }

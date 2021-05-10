@@ -118,6 +118,7 @@
  
   
   Adafruit_PWMServoDriver pwmServoBoard_1 = Adafruit_PWMServoDriver(0x40);
+  Adafruit_PWMServoDriver pwmServoBoard_2 = Adafruit_PWMServoDriver(0x41);
   int SERVOMIN = 100;   // right
   int SERVOMID = 290;   // center
   int SERVOMAX = 480;   // left
@@ -128,6 +129,8 @@
   int servo1pos = 290;
   int servo2pos =290;
   bool servo1cw = true;
+
+  bool goLow = false;
 
 //____________________ SETUP ( runs once ) _________________________
 void setup() {
@@ -216,9 +219,12 @@ void setup() {
   lcd.begin(16, 2);         // declares how many columns and rows on LCD screen                 *4
 
   pwmServoBoard_1.begin();
-  pwmServoBoard_1.setPWMFreq(50);  // This is the maximum PWM frequency
+  pwmServoBoard_1.setPWMFreq(60);  // This is the maximum PWM frequency
 
-//pwmServoBoard_1.setPWM(0,0,SERVOMID);
+  pwmServoBoard_2.begin();
+  pwmServoBoard_2.setPWMFreq(60);  // This is the maximum PWM frequency
+
+//pwmServoBoard_1.setPWM(0,0,SERVOMID); 
 //delay(1000);
 //
 // pwmServoBoard_1.setPWM(0,0,SERVOMIN);
@@ -363,15 +369,52 @@ void loop() {
 
   
 
-// this was a millis function to send random int 0-180 every 2 seconds for MoServo demonstration
-//  currentMillis = millis();
-//  if (currentMillis - previousTestServoMillis >= 2000) {
-//    previousTestServoMillis = currentMillis;
-//    int randomDegree = (int)random(0,181);
-//    Serial.print("New random degree = ");
-//    Serial.println(randomDegree);
-//    servo1.commandTo(randomDegree);
-//  }
+// this was a millis function to send random int every 2 seconds for servo demonstration
+  if (isAwake) {
+    currentMillis = millis();
+    if (currentMillis - previousTestServoMillis >= 2000) {
+      previousTestServoMillis = currentMillis;
+
+      int randomChannel = (int)random(1,3);
+      int randomDegree = (int)random(1050,2050);
+      Serial.print("Random seervo ");
+      Serial.print(randomChannel);
+      Serial.print(" to new random microseconds = ");
+      Serial.println(randomDegree);
+  
+  //    pwmServoBoard_1.writeMicroseconds(1, 1550);   // appears to be centered, once arm is on
+  
+      switch(randomChannel) {
+        case 1:
+          pwmServoBoard_1.writeMicroseconds(8, randomDegree);
+          break;
+        case 2:
+          pwmServoBoard_2.writeMicroseconds(9, randomDegree);
+          break;
+        default:
+          break;
+      } 
+
+        /*
+         *  We might redo these in the form of
+         *    
+         *  pwmServoBoard_1.writeMicroseconds( neckLiftServo.channel, randomDegree);
+         *  
+         *  Or perhaps better would be a moServo object "neckLiftServo"
+         *    which can have a method "neckLiftServo.moveTo()"
+         *    
+         *    and then the object itself can call either "pwmServoBoard_1.writeMicroseconds" or "pwmServoBoard_2.writeMicroseconds"
+         *    and go through its own personal limit checks.
+         *    
+         *    This way, each moServo object can have its own MIN, MAX and CTR values.
+         *    
+         */
+        
+    }
+  }
+
+  //    servo1.commandTo(randomDegree);
+  
 // un-needed now that bluetooth now receives a command from iOS and sends it to servo A1
 // but may reuse for later testing
 
