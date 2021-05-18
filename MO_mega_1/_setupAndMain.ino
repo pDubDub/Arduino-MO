@@ -286,6 +286,9 @@ void setup() {
     // TODO - set LED pulse to Green
   }
 
+  centerServos();
+  // this is a temporary function in f5 to center the servos.
+  
 } // end SETUP
 
 
@@ -372,10 +375,10 @@ void loop() {
 // this was a millis function to send random int every 2 seconds for servo demonstration
   if (isAwake) {
     currentMillis = millis();
-    if (currentMillis - previousTestServoMillis >= 2000) {
+    if (currentMillis - previousTestServoMillis >= 1000) {
       previousTestServoMillis = currentMillis;
 
-      int randomChannel = (int)random(1,3);
+      int randomChannel = (int)random(2,12);
       int randomDegree = (int)random(1050,2050);
       Serial.print("Random seervo ");
       Serial.print(randomChannel);
@@ -385,15 +388,63 @@ void loop() {
   //    pwmServoBoard_1.writeMicroseconds(1, 1550);   // appears to be centered, once arm is on
   
       switch(randomChannel) {
+        case 0:
+          break;    // channel 0 will be head louvres
         case 1:
-          pwmServoBoard_1.writeMicroseconds(8, randomDegree);
+//          pwmServoBoard_1.writeMicroseconds(1, randomDegree);               // siren lift
           break;
+                    // channel 2 would be siren spin
         case 2:
-          pwmServoBoard_2.writeMicroseconds(9, randomDegree);
+          pwmServoBoard_1.writeMicroseconds(3, randomDegree);               // head yaw
           break;
+        case 3:
+          pwmServoBoard_1.writeMicroseconds(4, randomDegree);               // head pitch
+          break;
+        case 4:
+          pwmServoBoard_1.writeMicroseconds(5, randomDegree);               // head roll
+          break;
+        case 5:
+          pwmServoBoard_1.writeMicroseconds(6, randomDegree);               // neck lift
+          break;
+        case 6:
+          pwmServoBoard_1.writeMicroseconds(7, randomDegree);               // neck lean
+          break;
+        case 7:
+          pwmServoBoard_2.writeMicroseconds(8, randomDegree);               // shoulder track
+          break;
+        case 8:
+          pwmServoBoard_2.writeMicroseconds(9, randomDegree);               // shoulder shrug
+          break;
+        case 9:
+          pwmServoBoard_2.writeMicroseconds(10, randomDegree);              // arm pivot
+          break;
+        case 10:
+          pwmServoBoard_2.writeMicroseconds(11, randomDegree);              // arm extension
+          break;
+        case 11:
+            // 0 is head louvres. No servo there yet.
+//          pwmServoBoard_1.writeMicroseconds(1, randomDegree);
+            // 2 is siren spin ?
+          pwmServoBoard_1.writeMicroseconds(3, randomDegree);
+          pwmServoBoard_1.writeMicroseconds(4, randomDegree);
+          pwmServoBoard_1.writeMicroseconds(5, randomDegree);
+          pwmServoBoard_1.writeMicroseconds(4, randomDegree);
+          pwmServoBoard_1.writeMicroseconds(6, randomDegree);
+          
+          pwmServoBoard_2.writeMicroseconds(8, randomDegree);
+          pwmServoBoard_2.writeMicroseconds(9, randomDegree);
+          pwmServoBoard_2.writeMicroseconds(10, randomDegree);
+          pwmServoBoard_2.writeMicroseconds(11, randomDegree);
+          pwmServoBoard_2.writeMicroseconds(12, randomDegree);
+            // 13 is scrubber motor?
+          pwmServoBoard_2.writeMicroseconds(14, randomDegree);
+          pwmServoBoard_2.writeMicroseconds(15, randomDegree);
         default:
           break;
       } 
+
+      // TODO - Should make a test funciton that sends all servos to center, that can be called on isAsleep.
+      
 
         /*
          *  We might redo these in the form of

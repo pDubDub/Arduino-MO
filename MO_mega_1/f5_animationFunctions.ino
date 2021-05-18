@@ -30,3 +30,37 @@ void updateSirenLamp() {
     sirenDidChange = false;                             // reset DidChange boolean so IF won't run again next loop
   }
 }
+
+/*
+ * Error checking and motion limits (i.e. is head in the acceptable position before raising arms) should be performed here.
+ *    The servo class should only be concerned with moving servos.
+ *    
+ *    This is where we should have things like a compact() method, that parks the body, drops his head, etc.
+ *    
+ *    Servo class should have a getPosition() method that will return the current position, which methods here can compare
+ *        with other postions and what commands are waiting from iOS.
+ *        
+ *       
+ */
+
+ void centerServos() {
+  // this is a temporary function, that centers all of the test servos
+
+  pwmServoBoard_1.writeMicroseconds(0, 1500);         // head louvres
+  pwmServoBoard_1.writeMicroseconds(1, 1500);         // siren lift
+    // 2 is siren spin
+  pwmServoBoard_1.writeMicroseconds(3, 1500);         // head yaw
+  pwmServoBoard_1.writeMicroseconds(4, 1500);         // head pitch
+  pwmServoBoard_1.writeMicroseconds(5, 1500);         // head roll
+  pwmServoBoard_1.writeMicroseconds(6, 1500);         // neck lift
+  pwmServoBoard_1.writeMicroseconds(7, 1500);         // neck lean
+  
+  pwmServoBoard_2.writeMicroseconds(8, 1500);         // shoulder track
+  pwmServoBoard_2.writeMicroseconds(9, 1500);         // shoulder shrug
+  pwmServoBoard_2.writeMicroseconds(10, 1500);        // arm pivot
+  pwmServoBoard_2.writeMicroseconds(11, 1500);        // arm extension
+  pwmServoBoard_2.writeMicroseconds(12, 1500);        // scrubber cover
+    // 13 is scrubber motor
+  pwmServoBoard_2.writeMicroseconds(14, 1500);        // torso lift
+  pwmServoBoard_2.writeMicroseconds(15, 1500);        // foot lift
+ }

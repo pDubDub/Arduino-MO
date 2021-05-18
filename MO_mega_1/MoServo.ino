@@ -68,6 +68,12 @@ class MoServo {
 //          servo.write(degrees);
 //        }
 
+        int getPosition() {
+          return currentPosition;
+
+          // TODO - should add a map() or a computed property so this function can return degrees instead of microseconds
+        }
+
         void writeMicroseconds(int microseconds) {
           servo.writeMicroseconds(microseconds);
         }

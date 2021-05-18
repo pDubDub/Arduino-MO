@@ -31,6 +31,10 @@ void toggleAwakeState() {
     // TODO - I think I would rather have sleep trigger a 5 second pause, in which we take average pitch readings, in a pitchAdjust variable.
     //   Then in the IMU code, add the pitchAdjust (and rollAdjust) values to pitch (and roll).
     // Probably don't want to do this until after we develop some smoothing/filtering code to make readings more stable.
+
+    centerServos();
+    // this is a temporary funciton in f5 to center the servos.
+    // Eventually, we would want more sophisticated animations to send everything back to home positions.
     
   }
   sendToI2CSlave(message2send, 1);
