@@ -45,7 +45,8 @@ void updateSirenLamp() {
 
  void centerServos() {
   // this is a temporary function, that centers all of the test servos
-
+  Serial.println("centerServo called");
+  
   pwmServoBoard_1.writeMicroseconds(0, 1500);         // head louvres
   pwmServoBoard_1.writeMicroseconds(1, 1500);         // siren lift
     // 2 is siren spin
@@ -54,9 +55,14 @@ void updateSirenLamp() {
   pwmServoBoard_1.writeMicroseconds(5, 1500);         // head roll
   pwmServoBoard_1.writeMicroseconds(6, 1500);         // neck lift
   pwmServoBoard_1.writeMicroseconds(7, 1500);         // neck lean
+//  newTestServo.commandTo(90);
+
+
+  newTestServo8.commandTo(90);
+  newTestServo9.commandTo(90);
   
-  pwmServoBoard_2.writeMicroseconds(8, 1500);         // shoulder track
-  pwmServoBoard_2.writeMicroseconds(9, 1500);         // shoulder shrug
+//  pwmServoBoard_2.writeMicroseconds(8, 1500);         // shoulder track
+//  pwmServoBoard_2.writeMicroseconds(9, 1500);         // shoulder shrug
   pwmServoBoard_2.writeMicroseconds(10, 1500);        // arm pivot
   pwmServoBoard_2.writeMicroseconds(11, 1500);        // arm extension
   pwmServoBoard_2.writeMicroseconds(12, 1500);        // scrubber cover

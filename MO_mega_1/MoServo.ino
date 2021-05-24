@@ -1,6 +1,8 @@
 #include "Arduino.h"
-#include <Servo.h>
 #include <Math.h>
+#include <Wire.h>
+#include <Servo.h>
+#include <Adafruit_PWMServoDriver.h>                // for 16-channel I2C Servo Driver
 
 // class definition
 class MoServo {
@@ -8,9 +10,15 @@ class MoServo {
     // would sort of like this to just inherit from Servo, but could not get it to work that way. Yet… TODO
     private:
         //properties:
-        int MIN_POS_MIC, MAX_POS_MIC, INIT_POS_MIC;                  // microseconds
+
+        String servoName;
+//        Adafruit_PWMServoDriver pwmServoBoard;
+        int channelNumber;                                           // from 0 to 15
+        
+        int MIN_POS_MIC, INIT_POS_MIC, MAX_POS_MIC;                  // microseconds
           // MG90S MIN is 500, MAX is 2500
           // INIT is the desired startup/neutral position, and may vary from servo to servo. First used was actually 1420.
+          // INIT and CTR are synonomous
         
         int lastCommand, currentCommand, nextCommand;                //  microseconds
         
@@ -22,8 +30,9 @@ class MoServo {
         bool currentlyMoving = false;
         
         // we WILL need vars for current and next millis?
-        unsigned long startOfMove, durationOfMove = 1000.0;
-        int startPosOfMove, distanceOfMove;
+        unsigned long startOfMove, durationOfMove = 1000.0;       // time values
+          // TODO - we could conceivably set duration dynamically based on distance of move?
+        int startPosOfMove, distanceOfMove;                       // distance values
         int newDuration, nextDuration;
         float elapsedTime;                  // used for computing position along easing movement
 
@@ -31,19 +40,19 @@ class MoServo {
 //        unsigned long currentUpdateMillis, millisOfLastMove;
         
     public:
-        Servo servo;
-        int pin;
+        Servo servo;                  // XX - these are obselete after transition to PWM servo board
+        int pin;                      // XX
 
         int currentPosition;        // was private. moved to public for parallel direct/pvm servo testing.
         
         int newCommand;                   // should start at initialPosition
 
-//        int minimumLimiter;               // these will be used to temporarily override MIN/MAX
-//        int maximumLimiter;
+        int minLimit;               // these will be used to temporarily override MIN/MAX
+        int maxLimit;
         
         //methods:
         
-        // constructor
+        // constructor              // XX - obselete constructor now that we've transitioned to PWM servo board
         MoServo(int pin, int MIN, int MAX, int INIT) {
             this->pin = pin;
             this->MIN_POS_MIC = MIN;
@@ -61,6 +70,28 @@ class MoServo {
 //            Serial.println("    debug: MoServo object constructed!");
         }
 
+        // new constructor for PWM board servo
+//        MoServo(String servoName, Adafruit_PWMServoDriver &pwmServoBoard, int channelNumber, int MIN, int CTR, int MAX) {
+          MoServo(String servoName, int channelNumber, int MIN, int CTR, int MAX) {
+          this->servoName = servoName;
+//          this->pwmServoBoard = pwmServoBoard;
+          this->channelNumber = channelNumber;
+          this->MIN_POS_MIC = MIN;
+          this->INIT_POS_MIC = CTR;
+          this->MAX_POS_MIC = MAX;
+          lastCommand = INIT_POS_MIC;
+          currentCommand = INIT_POS_MIC;
+          newCommand = INIT_POS_MIC;
+          nextCommand = INIT_POS_MIC;
+          currentPosition = INIT_POS_MIC;
+
+          // Note: Having print commands in constructor causes Crash when more than one class instance.
+//          Serial.println("");
+//          Serial.print("    debug: moServo named ");
+//          Serial.print(servoName);
+//          Serial.println(" constucted.");
+        }
+
         // FUTURE - it might be nice to be able to redefine the center/default position of the servo while running, rather than having to edit code
         //    but that will add a deal of complexity to iOS app, so I won't go that way yet.
         
@@ -74,8 +105,23 @@ class MoServo {
           // TODO - should add a map() or a computed property so this function can return degrees instead of microseconds
         }
 
+        String getName() {
+          return servoName;
+        }
+
+        int getChannel() {
+          return channelNumber;
+        }
+
+        // XX - I think this is just a test method to directly write an immediate position, rather than using easing
         void writeMicroseconds(int microseconds) {
           servo.writeMicroseconds(microseconds);
+//          pwmServoBoard.writeMicroseconds(channelNumber, microseconds);
+          Serial.print(servoName);
+          Serial.print(" writeMicroseconds ");
+          Serial.println(microseconds);
+//          pwmServoBoard_2.writeMicroseconds(channelNumber, microseconds);
+            // not declared in this scope!
         }
 
         // a simple method to send the servo to its initial position
@@ -83,10 +129,16 @@ class MoServo {
           servo.writeMicroseconds(INIT_POS_MIC);
         }
 
+        // TODO - make a center() method to set newCommand to CTR value INIT_POS_MIC
+
         // 2 versions of commandTo, one that accepts int, and one that accepts String
         void commandTo(int degrees) {
-          newCommand = map(degrees, 0, 180, 2500, 500);
+          newCommand = map(degrees, 0, 180, 2500, 500);         // TODO - should these map between MIN and MAX ??
           newDuration = 1000;                                             // default duration
+          Serial.print("Servo ");
+          Serial.print(servoName);
+          Serial.print(" received command: ");
+          Serial.println(newCommand);
         }
 
         void commandTo(String degreeString) {                             // this is implemented method to move moServo objects.
@@ -107,7 +159,9 @@ class MoServo {
                     //        IF distance is short, then timer randomly shortens
                     //        IF ∆t between commands is shorter, then durationOfMove shortens?
                     
-        void updateServo() {
+        int updateServo() {
+          // This is the main method, making the servo update with easing towards the next commanded position
+
             // set currentCommand and nextCommand
             if (newCommand != lastCommand) {                // have we received a newCommand
 //                Serial.print("New command received. ");
@@ -209,10 +263,18 @@ class MoServo {
 
                 // TODO - at some point, we also want to make sure we are not past limiter settings
 
-                // move the servo:
+                // and finally, move the servo:
 //                Serial.print("   Moving to ");
 //                Serial.println(currentPosition);
-                servo.writeMicroseconds(currentPosition);       // moves the servo **
+//                servo.writeMicroseconds(currentPosition);       // moves the servo **
+//                pwmServoBoard.writeMicroseconds(channelNumber, currentPosition);
+                Serial.print("write to channel ");
+                Serial.print(channelNumber);
+                Serial.print(" to ");
+                Serial.print(currentPosition);
+                Serial.println(" microseconds");
+
+                return currentPosition;
                 
 //                millisOfLastMove = currentUpdateMillis;
             }

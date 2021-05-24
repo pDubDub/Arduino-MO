@@ -113,6 +113,8 @@
 
   // direct connected test servo. Pin 12, Min 500, Max 2500, middle 1420 microseconds
   MoServo servo1 = MoServo(12, 500, 2500, 1420);   // in microseconds
+      // TODO this servo used in f1, but is obselete
+  
   // BlueTooth mesasges become "servo1.commandTo(newCommand, 800)" which tells servo1 MoServo object where to go to.
   // servo1.updateServo() call in loop moves the servo each cycle
  
@@ -130,7 +132,22 @@
   int servo2pos =290;
   bool servo1cw = true;
 
-  bool goLow = false;
+  bool goLow = false;       // what is this?
+
+  int testChannel = 0;      // just a temp var for testing servos in sequence
+
+  // new servo constructor test
+  MoServo newTestServo8 = MoServo("testTrack8", 8, 1000, 1420, 2000);
+  MoServo newTestServo9 = MoServo("testShrug9", 9, 1000, 1420, 2000);
+
+//MoServo newTestServo9 = MoServo("test9", 9, 1000, 1500, 2000);
+
+      /*
+       * Next steps:
+       *    -Make servo class use easing and pwmboard.write 
+       *    -Make a millis() function to send varying goTo() commands to a text moservo
+       *    -
+       */
 
 //____________________ SETUP ( runs once ) _________________________
 void setup() {
@@ -288,6 +305,8 @@ void setup() {
 
   centerServos();
   // this is a temporary function in f5 to center the servos.
+
+ 
   
 } // end SETUP
 
@@ -374,82 +393,119 @@ void loop() {
 
 // this was a millis function to send random int every 2 seconds for servo demonstration
   if (isAwake) {
+//  if (false) {      // turned this routine off for now, as I try to reimplement moServo class
+    
     currentMillis = millis();
-    if (currentMillis - previousTestServoMillis >= 1000) {
+    if (currentMillis - previousTestServoMillis >= 500) {
       previousTestServoMillis = currentMillis;
 
-      int randomChannel = (int)random(2,12);
-      int randomDegree = (int)random(1050,2050);
-      Serial.print("Random seervo ");
-      Serial.print(randomChannel);
-      Serial.print(" to new random microseconds = ");
-      Serial.println(randomDegree);
+//      int randomChannel = (int)random(2,12);
+      int randomMicros = (int)random(1050,2050);
+//      Serial.print("Moving servo ");
+//      Serial.print(testChannel);
+//      Serial.print(" to new random microseconds = ");
+//      Serial.println(randomDegree);
   
   //    pwmServoBoard_1.writeMicroseconds(1, 1550);   // appears to be centered, once arm is on
+            int randomDegreeCommand = (int)random(50,130);
   
-      switch(randomChannel) {
+      switch(testChannel) {
         case 0:
-          break;    // channel 0 will be head louvres
+          // channel 0 will be head louvres
+          break;    
         case 1:
-//          pwmServoBoard_1.writeMicroseconds(1, randomDegree);               // siren lift
+          // siren lift
+//          pwmServoBoard_1.writeMicroseconds(1, randomDegree);               
           break;
-                    // channel 2 would be siren spin
         case 2:
-          pwmServoBoard_1.writeMicroseconds(3, randomDegree);               // head yaw
+          // channel 2 would be siren spin
           break;
         case 3:
-          pwmServoBoard_1.writeMicroseconds(4, randomDegree);               // head pitch
+          pwmServoBoard_1.writeMicroseconds(3, randomMicros);               // head yaw
           break;
         case 4:
-          pwmServoBoard_1.writeMicroseconds(5, randomDegree);               // head roll
+          pwmServoBoard_1.writeMicroseconds(4, randomMicros);               // head pitch
           break;
         case 5:
-          pwmServoBoard_1.writeMicroseconds(6, randomDegree);               // neck lift
+          pwmServoBoard_1.writeMicroseconds(5, randomMicros);               // head roll
           break;
         case 6:
-          pwmServoBoard_1.writeMicroseconds(7, randomDegree);               // neck lean
+          pwmServoBoard_1.writeMicroseconds(6, randomMicros);               // neck lift
           break;
         case 7:
-          pwmServoBoard_2.writeMicroseconds(8, randomDegree);               // shoulder track
+          pwmServoBoard_1.writeMicroseconds(7, randomMicros);               // neck lean
           break;
         case 8:
-          pwmServoBoard_2.writeMicroseconds(9, randomDegree);               // shoulder shrug
+          // shoulder track
+          Serial.print("Sending command of "); 
+          Serial.print(randomDegreeCommand);
+          Serial.println(" degrees to 8 and 9.");
+//          pwmServoBoard_2.writeMicroseconds(8, randomMicros);               
+          newTestServo8.commandTo(randomDegreeCommand);
+          newTestServo9.commandTo(randomDegreeCommand);
           break;
         case 9:
-          pwmServoBoard_2.writeMicroseconds(10, randomDegree);              // arm pivot
+          // shoulder shrug
+//          Serial.print("Sending command of "); 
+//          Serial.print(randomDegreeCommand);
+//          Serial.println(" degrees to 9.");
+//          pwmServoBoard_2.writeMicroseconds(15, randomMicros);               
+//          Serial.println(newTestServo.getName());   // does it exist?
+//            newTestServo.writeMicroseconds(randomMicros);
+//          newTestServo9.commandTo(randomDegreeCommand);
+          // take int degrees
           break;
         case 10:
-          pwmServoBoard_2.writeMicroseconds(11, randomDegree);              // arm extension
+          pwmServoBoard_2.writeMicroseconds(10, randomMicros);              // arm pivot
           break;
         case 11:
+          pwmServoBoard_2.writeMicroseconds(11, randomMicros);              // arm extension
+          break;
+        case 12:
             // 0 is head louvres. No servo there yet.
-//          pwmServoBoard_1.writeMicroseconds(1, randomDegree);
+//          pwmServoBoard_1.writeMicroseconds(1, randomMicros);
             // 2 is siren spin ?
-          pwmServoBoard_1.writeMicroseconds(3, randomDegree);
-          pwmServoBoard_1.writeMicroseconds(4, randomDegree);
-          pwmServoBoard_1.writeMicroseconds(5, randomDegree);
-          pwmServoBoard_1.writeMicroseconds(4, randomDegree);
-          pwmServoBoard_1.writeMicroseconds(6, randomDegree);
+          pwmServoBoard_1.writeMicroseconds(3, randomMicros);
+          pwmServoBoard_1.writeMicroseconds(4, randomMicros);
+          pwmServoBoard_1.writeMicroseconds(5, randomMicros);
+          pwmServoBoard_1.writeMicroseconds(6, randomMicros);
+          pwmServoBoard_1.writeMicroseconds(7, randomMicros);
           
-          pwmServoBoard_2.writeMicroseconds(8, randomDegree);
-          pwmServoBoard_2.writeMicroseconds(9, randomDegree);
-          pwmServoBoard_2.writeMicroseconds(10, randomDegree);
-          pwmServoBoard_2.writeMicroseconds(11, randomDegree);
-          pwmServoBoard_2.writeMicroseconds(12, randomDegree);
+//          pwmServoBoard_2.writeMicroseconds(8, randomMicros);
+//          pwmServoBoard_2.writeMicroseconds(9, randomMicros);
+//          pwmServoBoard_2.writeMicroseconds(10, randomMicros);
+//          pwmServoBoard_2.writeMicroseconds(11, randomMicros);
+//          pwmServoBoard_2.writeMicroseconds(12, randomMicros);
             // 13 is scrubber motor?
-          pwmServoBoard_2.writeMicroseconds(14, randomDegree);
-          pwmServoBoard_2.writeMicroseconds(15, randomDegree);
+//          pwmServoBoard_2.writeMicroseconds(14, randomMicros);
+//          pwmServoBoard_2.writeMicroseconds(15, randomMicros);
+//            newTestServo.commandTo(randomDegreeCommand);  
+          break;
         default:
           break;
       } 
 
-      // TODO - Should make a test funciton that sends all servos to center, that can be called on isAsleep.
+      // get rid of the switch
+//    if testChannel < 8
+//          pwmServoBoard_1.writeMicroseconds(testChannel, randomMicros);
+//    } else {
+//          pwmServoBoard_2.writeMicroseconds(testChannel, randomMicros);
+//    }
+
+      testChannel = testChannel + 1;
+      if (testChannel > 12) {
+        testChannel = 0;
+      }
+      
+
+      // f5 centerServos() method will center all test servos. 
+      //     Will need similar functionality with servo class, to be called when isAsleep.
       
 
         /*
          *  We might redo these in the form of
          *    
-         *  pwmServoBoard_1.writeMicroseconds( neckLiftServo.channel, randomDegree);
+         *  pwmServoBoard_1.writeMicroseconds( neckLiftServo.channel, randomMicros);
          *  
          *  Or perhaps better would be a moServo object "neckLiftServo"
          *    which can have a method "neckLiftServo.moveTo()"
@@ -460,9 +516,10 @@ void loop() {
          *    This way, each moServo object can have its own MIN, MAX and CTR values.
          *    
          */
+
         
-    }
-  }
+    } // end of millis()
+  } // end of isAwake
 
   //    servo1.commandTo(randomDegree);
   
@@ -472,34 +529,38 @@ void loop() {
   // update servo1, which is currently receiving commands from iOS slider!
   servo1.updateServo();
 
+//  newTestServo.updateServo();   // this runs every loop to move the servo just a touch towards destination
+  pwmServoBoard_2.writeMicroseconds(newTestServo8.getChannel(), newTestServo8.updateServo());
+  pwmServoBoard_2.writeMicroseconds(newTestServo9.getChannel(), newTestServo9.updateServo());
+
   // TODO - Testing: It does sort of feel like iOS app can't do anything while the servo is still moving.
   //    This may be because of the delay built into the iOS app when it comes to the slider, so that app doesn't flood
   //    bluetooth to Arduino.
 
  
-if (isAwake != previousIsAwake) {
-// All this appears to do is set previousIsAwake when there is a change
+  if (isAwake != previousIsAwake) {
+  // All this appears to do is set previousIsAwake when there is a change
+    
+    /* BUG - something causes isAwake or the LCD to go to 'sleeping' after about 20 seconds
+     *  
+     *  moved 4B above into an IF that solves it for the strobe, but LCD continued.
+     *  
+     *  the mere presence of Serial.print(isAwake) made the problem go away.
+     *  and deleting Serial.println(isAwake) made it return.
+     *  
+     *  the remaining change detection statement here still keeps bug away
+    */
   
-  /* BUG - something causes isAwake or the LCD to go to 'sleeping' after about 20 seconds
-   *  
-   *  moved 4B above into an IF that solves it for the strobe, but LCD continued.
-   *  
-   *  the mere presence of Serial.print(isAwake) made the problem go away.
-   *  and deleting Serial.println(isAwake) made it return.
-   *  
-   *  the remaining change detection statement here still keeps bug away
-  */
+  //    Serial.print("isAwake state changed to: ");
+  //    Serial.println(isAwake);
+      previousIsAwake = isAwake;
+  }
 
-//    Serial.print("isAwake state changed to: ");
-//    Serial.println(isAwake);
-    previousIsAwake = isAwake;
-}
-
-// 4C -- rear panel operation message LED screen
-updateRearLEDscreen();
-
-// 5A --  the Foreign Contaminent red siren light on M-O's head, currently set to trigger via #0 on the IR remote
-updateSirenLamp();
+  // 4C -- rear panel operation message LED screen
+  updateRearLEDscreen();
+  
+  // 5A --  the Foreign Contaminent red siren light on M-O's head, currently set to trigger via #0 on the IR remote
+  updateSirenLamp();
 
 
 //pwmServoBoard_1.setPWM(1, 0, servo1pos);
@@ -512,7 +573,7 @@ updateSirenLamp();
 
       
 // THEN - command pwmServoBoard_1.setPWM(0, 0, servo1pos)
-pwmServoBoard_1.writeMicroseconds(0, servo1.currentPosition);
+//pwmServoBoard_1.writeMicroseconds(0, servo1.currentPosition);
 //pwmServoBoard_1.writeMicroseconds(0, 1500);
 
 //
