@@ -11,22 +11,28 @@ class MoServo {
     private:
         //properties:
 
-        String servoName;
+        String SERVO_NAME;
 //        Adafruit_PWMServoDriver pwmServoBoard;
-        int channelNumber;                                           // from 0 to 15
+        int CHANNEL_NUM;                                           // from 0 to 15
         
-        int MIN_POS_MIC, INIT_POS_MIC, MAX_POS_MIC;                  // microseconds
+        int POSITION_MIN_MICROSECONDS;
+        int POSITION_MAX_MICROSECONDS;
+        int POSITION_START_MICROSECONDS;
+        int POSITION_CENTER_MICROSECONDS;
           // MG90S MIN is 500, MAX is 2500
-          // INIT is the desired startup/neutral position, and may vary from servo to servo. First used was actually 1420.
-          // INIT and CTR are synonomous
+          // CENTER is the default, middle position, and may vary from servo to servo. 
+          // START is the desired startup position, however, as some motions will start up at a retracted position.
+          // First center used was actually 1420.
         
         int lastCommand, currentCommand, nextCommand;                //  microseconds
         
         // 
 
 //        int currentSpeed;                 // ?
-          // I think the solution to mixing commands lies in tracking speed (microseconds/milli-loop) as we do longer duration animations
-        
+          /* I think the solution to mixing commands lies in tracking speed (microseconds/milli-loop) 
+           *  as we do longer duration animations.
+          */
+          
         bool currentlyMoving = false;
         
         // we WILL need vars for current and next millis?
@@ -52,43 +58,51 @@ class MoServo {
         
         //methods:
         
-        // constructor              // XX - obselete constructor now that we've transitioned to PWM servo board
+        // old constructor              // XX - obselete constructor now that we've transitioned to PWM servo board
         MoServo(int pin, int MIN, int MAX, int INIT) {
             this->pin = pin;
-            this->MIN_POS_MIC = MIN;
-            this->MAX_POS_MIC = MAX;
-            this->INIT_POS_MIC = INIT;
-            lastCommand = INIT_POS_MIC;
-            currentCommand = INIT_POS_MIC;
-            newCommand = INIT_POS_MIC;
-            nextCommand = INIT_POS_MIC;
-            currentPosition = INIT_POS_MIC;
+            this->POSITION_MIN_MICROSECONDS = MIN;
+            this->POSITION_MAX_MICROSECONDS = MAX;
+            this->POSITION_START_MICROSECONDS = INIT;
+            lastCommand = POSITION_START_MICROSECONDS;
+            currentCommand = POSITION_START_MICROSECONDS;
+            newCommand = POSITION_START_MICROSECONDS;
+            nextCommand = POSITION_START_MICROSECONDS;
+            currentPosition = POSITION_START_MICROSECONDS;
+
             
             // perhaps setup commands like initial movement go here, and also attach()???
 //            servo.attach(pin);
-            
-//            Serial.println("    debug: MoServo object constructed!");
         }
 
         // new constructor for PWM board servo
-//        MoServo(String servoName, Adafruit_PWMServoDriver &pwmServoBoard, int channelNumber, int MIN, int CTR, int MAX) {
-          MoServo(String servoName, int channelNumber, int MIN, int CTR, int MAX) {
-          this->servoName = servoName;
+//        MoServo(String SERVO_NAME, Adafruit_PWMServoDriver &pwmServoBoard, int CHANNEL_NUM, int MIN, int CTR, int MAX) {
+
+        MoServo(String SERVO_NAME, int CHANNEL_NUM, int MIN, int MAX, int START, int CTR) {
+            // takes name, channel number, and microsecond limits for MIN, CTR, and MAX
+
+            // TODO - I'm feeling like these would be simpler to configure if they take degrees instead of microseconds.
+            //      Although, obviously, that's not quite as precise.
+            
+          this->SERVO_NAME = SERVO_NAME;
 //          this->pwmServoBoard = pwmServoBoard;
-          this->channelNumber = channelNumber;
-          this->MIN_POS_MIC = MIN;
-          this->INIT_POS_MIC = CTR;
-          this->MAX_POS_MIC = MAX;
-          lastCommand = INIT_POS_MIC;
-          currentCommand = INIT_POS_MIC;
-          newCommand = INIT_POS_MIC;
-          nextCommand = INIT_POS_MIC;
-          currentPosition = INIT_POS_MIC;
+          this->CHANNEL_NUM = CHANNEL_NUM;
+          this->POSITION_MIN_MICROSECONDS = MIN;
+          this->POSITION_MAX_MICROSECONDS = MAX;
+          this->POSITION_START_MICROSECONDS = START;
+          this->POSITION_CENTER_MICROSECONDS = CTR;
+          lastCommand = POSITION_START_MICROSECONDS;
+          currentCommand = POSITION_START_MICROSECONDS;
+          newCommand = POSITION_START_MICROSECONDS;
+          nextCommand = POSITION_START_MICROSECONDS;
+          currentPosition = POSITION_START_MICROSECONDS;
+          minLimit = MIN;
+          maxLimit = MAX;
 
           // Note: Having print commands in constructor causes Crash when more than one class instance.
 //          Serial.println("");
 //          Serial.print("    debug: moServo named ");
-//          Serial.print(servoName);
+//          Serial.print(SERVO_NAME);
 //          Serial.println(" constucted.");
         }
 
@@ -106,50 +120,62 @@ class MoServo {
         }
 
         String getName() {
-          return servoName;
+          return SERVO_NAME;
         }
 
         int getChannel() {
-          return channelNumber;
+          return CHANNEL_NUM;
         }
 
         // XX - I think this is just a test method to directly write an immediate position, rather than using easing
         void writeMicroseconds(int microseconds) {
           servo.writeMicroseconds(microseconds);
-//          pwmServoBoard.writeMicroseconds(channelNumber, microseconds);
-          Serial.print(servoName);
+//          pwmServoBoard.writeMicroseconds(CHANNEL_NUM, microseconds);
+          Serial.print(SERVO_NAME);
           Serial.print(" writeMicroseconds ");
           Serial.println(microseconds);
-//          pwmServoBoard_2.writeMicroseconds(channelNumber, microseconds);
+//          pwmServoBoard_2.writeMicroseconds(CHANNEL_NUM, microseconds);
             // not declared in this scope!
         }
 
         // a simple method to send the servo to its initial position
-        void start() {
-          servo.writeMicroseconds(INIT_POS_MIC);
+        void goToStart() {
+//          servo.writeMicroseconds(POSITION_START_MICROSECONDS);
+            newCommand = POSITION_START_MICROSECONDS;
         }
 
-        // TODO - make a center() method to set newCommand to CTR value INIT_POS_MIC
+        // a simple method to send the servo to its 'centered' normal/ready position
+        void goToCenter() {
+          newCommand = POSITION_CENTER_MICROSECONDS;
+        }
 
         // 2 versions of commandTo, one that accepts int, and one that accepts String
         void commandTo(int degrees) {
           newCommand = map(degrees, 0, 180, 2500, 500);         // TODO - should these map between MIN and MAX ??
           newDuration = 1000;                                             // default duration
           Serial.print("Servo ");
-          Serial.print(servoName);
+          Serial.print(SERVO_NAME);
           Serial.print(" received command: ");
-          Serial.println(newCommand);
+          Serial.print(newCommand);
+          Serial.println(" μs.");
+
+          // Now do limit checking.
+          limitCheck();
         }
 
         void commandTo(String degreeString) {                             // this is implemented method to move moServo objects.
           newCommand = map(degreeString.toInt(), 0, 180, 2400, 500);      // left-limit was 2500, but found it was clipping the end of moves. (i.e. no distinction 0-10 degrees)
           newDuration = 1000;
+
+          limitCheck();
         }
 
         // 3rd version now accepts a duration too.
         void commandTo(String degreeString, int duration) {
           newCommand = map(degreeString.toInt(), 0, 180, 2400, 500);
           newDuration = duration;
+
+          limitCheck();
         }
 
                     // TODO - we now accept durationOfMove as a parameter, or default it to 1 sec if not specified.
@@ -158,7 +184,30 @@ class MoServo {
                     // in fact, what might be nice, is a nice gentle (possibly randomized) duration, but…
                     //        IF distance is short, then timer randomly shortens
                     //        IF ∆t between commands is shorter, then durationOfMove shortens?
-                    
+
+        void limitCheck() {
+           /*
+           * If newCommand is less than MIN, newCommand = MIN
+           * else if less than minLimit, then newCommand = minLimit
+           * else if greater than MAX, newCommand = MAX
+           * else if greater than maxLimit, newCommand = maxLimit
+           */
+
+           if (newCommand < POSITION_MIN_MICROSECONDS) {
+            newCommand = POSITION_MIN_MICROSECONDS;
+//            Serial.println("Beyond MIN");
+           } else if (newCommand < minLimit) {
+            newCommand = minLimit;
+//            Serial.println("Min Limiter");
+           } else if (newCommand > POSITION_MAX_MICROSECONDS) {
+            newCommand = POSITION_MAX_MICROSECONDS;
+//            Serial.println("Beyond MAX");
+           } else if (newCommand > maxLimit) {
+            newCommand = maxLimit;
+//            Serial.println("Max Limiter");
+//            Serial.println(maxLimit);
+           }
+        }
         int updateServo() {
           // This is the main method, making the servo update with easing towards the next commanded position
 
@@ -242,12 +291,12 @@ class MoServo {
 //                Serial.println(proposedPosition);
                 
                 // if difference is less than 10, then just move the difference instead of proposed
-                if ( abs(currentPosition - currentCommand) < 10) {
-                  // move to command
-                  currentPosition = currentCommand;
-                } else {
-                  currentPosition = proposedPosition;
-                }
+                    if ( abs(currentPosition - currentCommand) < 4) {
+                      // move to command
+                      currentPosition = currentCommand;
+                    } else {
+                      currentPosition = proposedPosition;
+                    }
 
                 // TODO - could also make sure that algorithm is not proposing to move beyond destination, 
                 //        unless of course we try to implement somekind of occasional bounce.
@@ -255,11 +304,12 @@ class MoServo {
 //                currentUpdateMillis = millis();   // not sure needed anymore
 
                 // bounds checking
-                if (currentPosition > MAX_POS_MIC) {
-                  currentPosition = MAX_POS_MIC;
-                } else if (currentPosition < MIN_POS_MIC) {
-                  currentPosition = MIN_POS_MIC;
-                }
+                // TODO - this should compare to LIMITS too
+                    if (currentPosition > POSITION_MAX_MICROSECONDS) {
+                      currentPosition = POSITION_MAX_MICROSECONDS;
+                    } else if (currentPosition < POSITION_MIN_MICROSECONDS) {
+                      currentPosition = POSITION_MIN_MICROSECONDS;
+                    }
 
                 // TODO - at some point, we also want to make sure we are not past limiter settings
 
@@ -267,12 +317,14 @@ class MoServo {
 //                Serial.print("   Moving to ");
 //                Serial.println(currentPosition);
 //                servo.writeMicroseconds(currentPosition);       // moves the servo **
-//                pwmServoBoard.writeMicroseconds(channelNumber, currentPosition);
-                Serial.print("write to channel ");
-                Serial.print(channelNumber);
-                Serial.print(" to ");
-                Serial.print(currentPosition);
-                Serial.println(" microseconds");
+//                pwmServoBoard.writeMicroseconds(CHANNEL_NUM, currentPosition);
+
+              // turned off these print statements, to see if they were causing anomalous movement.
+//                Serial.print("write to channel ");
+//                Serial.print(CHANNEL_NUM);
+//                Serial.print(" to ");
+//                Serial.print(currentPosition);
+//                Serial.println(" microseconds");
 
                 return currentPosition;
                 

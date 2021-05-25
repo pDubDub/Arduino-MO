@@ -254,7 +254,10 @@ void readFromBluetooth() {
 
       } else if (newCommand.startsWith("A1")) {                               // first implementation of iOS moving a servo
         newCommand.remove(0,3);                                               // removes first 3 characters
-        servo1.commandTo(newCommand, 800);                                    // now accepts a duration in microseconds
+        
+//        servo1.commandTo(newCommand, 800);                                    // now accepts a duration in microseconds
+        // this is a deprecated moServo object, before I implemented the PWM Servo Boards
+
       }
       
     } // end newcommand.length() IF

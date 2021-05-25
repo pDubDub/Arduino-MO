@@ -112,7 +112,7 @@
   LiquidCrystal lcd(48, 49, 50, 51, 52, 53);                                             // *4
 
   // direct connected test servo. Pin 12, Min 500, Max 2500, middle 1420 microseconds
-  MoServo servo1 = MoServo(12, 500, 2500, 1420);   // in microseconds
+//  MoServo servo1 = MoServo(12, 500, 2500, 1420);   // in microseconds
       // TODO this servo used in f1, but is obselete
   
   // BlueTooth mesasges become "servo1.commandTo(newCommand, 800)" which tells servo1 MoServo object where to go to.
@@ -121,9 +121,9 @@
   
   Adafruit_PWMServoDriver pwmServoBoard_1 = Adafruit_PWMServoDriver(0x40);
   Adafruit_PWMServoDriver pwmServoBoard_2 = Adafruit_PWMServoDriver(0x41);
-  int SERVOMIN = 100;   // right
-  int SERVOMID = 290;   // center
-  int SERVOMAX = 480;   // left
+//  int SERVOMIN = 100;   // right
+//  int SERVOMID = 290;   // center
+//  int SERVOMAX = 480;   // left
 
   int MIN_MICRO = 1000;
   int MAX_MICRO = 2000;
@@ -137,17 +137,13 @@
   int testChannel = 0;      // just a temp var for testing servos in sequence
 
   // new servo constructor test
-  MoServo newTestServo8 = MoServo("testTrack8", 8, 1000, 1420, 2000);
-  MoServo newTestServo9 = MoServo("testShrug9", 9, 1000, 1420, 2000);
+    // channel, MIN, MAX, START, CENTER
+  MoServo newTestServo8 = MoServo("testTrack8", 8, 1000, 2000, 1500, 1500);
+      // TODO - altering the last two values seems to crash servo8
+  MoServo newTestServo9 = MoServo("testShrug9", 9, 1000, 2000, 1500, 1500);
+  MoServo newTestServo10 = MoServo("testLean10", 10, 1300, 1600, 1420, 1420);   // tuned for pretty close center position
+          // on neck lean, lower microseconds are more forward
 
-//MoServo newTestServo9 = MoServo("test9", 9, 1000, 1500, 2000);
-
-      /*
-       * Next steps:
-       *    -Make servo class use easing and pwmboard.write 
-       *    -Make a millis() function to send varying goTo() commands to a text moservo
-       *    -
-       */
 
 //____________________ SETUP ( runs once ) _________________________
 void setup() {
@@ -259,8 +255,8 @@ void setup() {
   sirenSpinServo.writeMicroseconds(1454);               // fine tuned for zero rotation of FS90R c-r servo
 
     // this is a test of MoServo:
-  servo1.servo.attach(servo1.pin);                      // TODO - can this be done in constructor?
-  servo1.start();
+//  servo1.servo.attach(servo1.pin);                      // TODO - can this be done in constructor?
+//  servo1.goToStart();
   // TODO - should there be a beginning position command here?
 
 
@@ -303,9 +299,8 @@ void setup() {
     // TODO - set LED pulse to Green
   }
 
-  centerServos();
+  servosToStart();
   // this is a temporary function in f5 to center the servos.
-
  
   
 } // end SETUP
@@ -401,13 +396,15 @@ void loop() {
 
 //      int randomChannel = (int)random(2,12);
       int randomMicros = (int)random(1050,2050);
+      int randomDegreeCommand = (int)random(45,135);
+      
 //      Serial.print("Moving servo ");
 //      Serial.print(testChannel);
 //      Serial.print(" to new random microseconds = ");
 //      Serial.println(randomDegree);
   
   //    pwmServoBoard_1.writeMicroseconds(1, 1550);   // appears to be centered, once arm is on
-            int randomDegreeCommand = (int)random(50,130);
+            
   
       switch(testChannel) {
         case 0:
@@ -437,12 +434,13 @@ void loop() {
           break;
         case 8:
           // shoulder track
+          Serial.println();
           Serial.print("Sending command of "); 
           Serial.print(randomDegreeCommand);
           Serial.println(" degrees to 8 and 9.");
 //          pwmServoBoard_2.writeMicroseconds(8, randomMicros);               
           newTestServo8.commandTo(randomDegreeCommand);
-          newTestServo9.commandTo(randomDegreeCommand);
+          
           break;
         case 9:
           // shoulder shrug
@@ -452,11 +450,22 @@ void loop() {
 //          pwmServoBoard_2.writeMicroseconds(15, randomMicros);               
 //          Serial.println(newTestServo.getName());   // does it exist?
 //            newTestServo.writeMicroseconds(randomMicros);
-//          newTestServo9.commandTo(randomDegreeCommand);
+            Serial.println();
+            Serial.print("Sending command of "); 
+            Serial.print(randomDegreeCommand);
+            Serial.println(" degrees to 9.");
+            newTestServo9.commandTo(randomDegreeCommand);
           // take int degrees
           break;
         case 10:
-          pwmServoBoard_2.writeMicroseconds(10, randomMicros);              // arm pivot
+//          pwmServoBoard_2.writeMicroseconds(10, randomMicros);              // arm pivot
+
+          // temp using to test neck lean
+          Serial.println();
+            Serial.print("Sending command of "); 
+            Serial.print(randomDegreeCommand);
+            Serial.println(" degrees to 10.");
+            newTestServo10.commandTo(randomDegreeCommand);
           break;
         case 11:
           pwmServoBoard_2.writeMicroseconds(11, randomMicros);              // arm extension
@@ -470,6 +479,15 @@ void loop() {
           pwmServoBoard_1.writeMicroseconds(5, randomMicros);
           pwmServoBoard_1.writeMicroseconds(6, randomMicros);
           pwmServoBoard_1.writeMicroseconds(7, randomMicros);
+
+
+          Serial.println();
+          Serial.print("Sending command of "); 
+          Serial.print(randomDegreeCommand);
+          Serial.println(" degrees to 8, 9 and 10.");
+          newTestServo8.commandTo(randomDegreeCommand);
+          newTestServo9.commandTo(randomDegreeCommand);
+          newTestServo10.commandTo(randomDegreeCommand);
           
 //          pwmServoBoard_2.writeMicroseconds(8, randomMicros);
 //          pwmServoBoard_2.writeMicroseconds(9, randomMicros);
@@ -498,7 +516,7 @@ void loop() {
       }
       
 
-      // f5 centerServos() method will center all test servos. 
+      // f5 servosToCenter() method will center all test servos. 
       //     Will need similar functionality with servo class, to be called when isAsleep.
       
 
@@ -527,11 +545,12 @@ void loop() {
 // but may reuse for later testing
 
   // update servo1, which is currently receiving commands from iOS slider!
-  servo1.updateServo();
+//  servo1.updateServo();
 
 //  newTestServo.updateServo();   // this runs every loop to move the servo just a touch towards destination
   pwmServoBoard_2.writeMicroseconds(newTestServo8.getChannel(), newTestServo8.updateServo());
   pwmServoBoard_2.writeMicroseconds(newTestServo9.getChannel(), newTestServo9.updateServo());
+  pwmServoBoard_2.writeMicroseconds(newTestServo10.getChannel(), newTestServo10.updateServo());
 
   // TODO - Testing: It does sort of feel like iOS app can't do anything while the servo is still moving.
   //    This may be because of the delay built into the iOS app when it comes to the slider, so that app doesn't flood

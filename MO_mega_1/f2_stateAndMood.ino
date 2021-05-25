@@ -32,7 +32,7 @@ void toggleAwakeState() {
     //   Then in the IMU code, add the pitchAdjust (and rollAdjust) values to pitch (and roll).
     // Probably don't want to do this until after we develop some smoothing/filtering code to make readings more stable.
 
-    centerServos();
+    servosToStart();
     // this is a temporary funciton in f5 to center the servos.
     // Eventually, we would want more sophisticated animations to send everything back to home positions.
     
