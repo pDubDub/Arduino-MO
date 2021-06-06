@@ -2,7 +2,7 @@
 #include "Arduino.h"
 #include "IRremote.h"                               // *Capability 1A
 #include <LiquidCrystal.h>                          // *4C
-#include <Servo.h>                                  // *5
+//#include <Servo.h>                                  // *5
 #include <Wire.h>                                   // *1,3 - for I2C communication to slave Arduinos & mpu6050
 #include <Adafruit_PWMServoDriver.h>                // f5 - for 16-channel I2C Servo Driver
 
@@ -11,8 +11,8 @@
   // pin 2 reserved for INT on MPU-6050 IMU                                                     *1
   const int IR_RECEIVER = 3;            // Signal Pin of IR receiver to Arduino Digital Pin 3   *1A
   const int RED_LAMP_LED = 4;           // red LED for the contaminant siren lamp               *5A
-  const int SIREN_LIFT_SERVO = 5;                                                       //      *5A
-  const int SIREN_SPIN_CSERVO = 6;                                                      //      *5A
+  const int SIREN_LIFT_SERVO = 5;                                                       //      *5A       XXXXX
+  const int SIREN_SPIN_CSERVO = 6;                                                      //      *5A       XXXXX
   
   const int RGB_LED_RED = 7;               // define the RGB LED pins                           *4B
     // Something in this code causes a crash when using RGB_RED on pin 9 or 10
@@ -44,8 +44,8 @@
 //  BotState readyState = unknown;
   
   // 1B - Bluetooth
-  String lastCommand = "";
-  String newCommand = "";
+  String lastBTCommand = "";
+  String newBTCommand = "";
   String command = "meep";                        // 3 - nessage to I2C slaves
   char message[8];                                // 3 - Wire.write() actually needs char array, not a String
 
@@ -105,8 +105,8 @@
 // declare objects
   IRrecv irrecv(IR_RECEIVER);         // create instance of 'irrecv' for IR remote
   decode_results results;             // create instance of 'decode_results' for IR remote
-  Servo sirenLiftServo;               // create servo object to control a servo             *5
-  Servo sirenSpinServo;               // continous servo                                    *5
+//  Servo sirenLiftServo;               // create servo object to control a servo             *5
+//  Servo sirenSpinServo;               // continous servo                                    *5
   
 //                  BS  E  D4 D5  D6 D7
   LiquidCrystal lcd(48, 49, 50, 51, 52, 53);                                             // *4
@@ -115,7 +115,7 @@
 //  MoServo servo1 = MoServo(12, 500, 2500, 1420);   // in microseconds
       // TODO this servo used in f1, but is obselete
   
-  // BlueTooth mesasges become "servo1.commandTo(newCommand, 800)" which tells servo1 MoServo object where to go to.
+  // BlueTooth mesasges become "servo1.commandTo(newBTCommand, 800)" which tells servo1 MoServo object where to go to.
   // servo1.updateServo() call in loop moves the servo each cycle
  
   
@@ -138,12 +138,25 @@
 
   // new servo constructor test
     // channel, MIN, MAX, START, CENTER
+    // note MIN is actually furthest right/CW, while MAX is actually furthest left/CCW
+  MoServo moServo00Louvers = MoServo("headLouver00", 0, 900, 2101, 2100, 2100);              // rear head louvers
+      // should I open louvers on sleep?
+  MoServo moServo01SirenLift = MoServo("sirenLift01", 1, 700, 2101, 2100, 2100);            // siren lift
+  MoServo moServo02SirenSpin = MoServo("sirenSpin02", 2, 1400, 1600, 1500, 1500);           // siren spin
+      // Siren Spin servo works like this, with easing, although that servo is really noisy.
+  MoServo newTestServo3 = MoServo("testPan3", 3, 900, 2000, 1500, 1500);                    // head pan
+  MoServo newTestServo4 = MoServo("testTilt4", 4, 1000, 2000, 1500, 1500);                  // head pitch
+  MoServo newTestServo5 = MoServo("testRoll5", 5, 1000, 2000, 1500, 1500);                  // head roll
+  MoServo newTestServo6 = MoServo("test6", 6, 1000, 2000, 1500, 1500);                      // neck lift
+  MoServo newTestServo7 = MoServo("test7", 7, 1300, 1600, 1420, 1420);                      // neck lean
+  
   MoServo newTestServo8 = MoServo("testTrack8", 8, 1000, 2000, 1500, 1500);
       // TODO - altering the last two values seems to crash servo8
   MoServo newTestServo9 = MoServo("testShrug9", 9, 1000, 2000, 1500, 1500);
   MoServo newTestServo10 = MoServo("testLean10", 10, 1300, 1600, 1420, 1420);   // tuned for pretty close center position
           // on neck lean, lower microseconds are more forward
 
+//  int microsec = 0;
 
 //____________________ SETUP ( runs once ) _________________________
 void setup() {
@@ -201,6 +214,9 @@ void setup() {
 
   // confirm i2c communication
   Wire.begin(0);                                          // 3 - starts I2C communication as Master to slaves
+  //Wire.setClock(1000000);                                 // TRIED setting this higher than default 100000 to see if would
+                                                          //   eliminate PWM servo board movement jerks, but did not
+                                                          
     // I think I could put the Wire.onReceive(receiveEvent) here, and then slaves can message the master too
   Serial.println(" *  I2C communication enabled.");           // dummy message, eventually needing conditional
 
@@ -232,10 +248,12 @@ void setup() {
   lcd.begin(16, 2);         // declares how many columns and rows on LCD screen                 *4
 
   pwmServoBoard_1.begin();
-  pwmServoBoard_1.setPWMFreq(60);  // This is the maximum PWM frequency
+//  pwmServoBoard_1.setOscillatorFrequency(27000000);
+  pwmServoBoard_1.setPWMFreq(50);  // This is the maximum PWM frequency
 
   pwmServoBoard_2.begin();
-  pwmServoBoard_2.setPWMFreq(60);  // This is the maximum PWM frequency
+//  pwmServoBoard_2.setOscillatorFrequency(27000000);
+  pwmServoBoard_2.setPWMFreq(50);  // This is the maximum PWM frequency
 
 //pwmServoBoard_1.setPWM(0,0,SERVOMID); 
 //delay(1000);
@@ -248,11 +266,11 @@ void setup() {
 //pwmServoBoard_1.setPWM(0,0,SERVOMID);
 //delay(1000);
 
-  sirenLiftServo.attach(SIREN_LIFT_SERVO);              // attaches the servo on pin x to the servo object
-  sirenSpinServo.attach(SIREN_SPIN_CSERVO);             // attach continuous servo on pin x to the servo object
-
-  sirenLiftServo.write(0);                              // makes servo start at 0
-  sirenSpinServo.writeMicroseconds(1454);               // fine tuned for zero rotation of FS90R c-r servo
+//  sirenLiftServo.attach(SIREN_LIFT_SERVO);              // attaches the servo on pin x to the servo object
+//  sirenSpinServo.attach(SIREN_SPIN_CSERVO);             // attach continuous servo on pin x to the servo object
+//
+//  sirenLiftServo.write(0);                              // makes servo start at 0
+//  sirenSpinServo.writeMicroseconds(1454);               // fine tuned for zero rotation of FS90R c-r servo
 
     // this is a test of MoServo:
 //  servo1.servo.attach(servo1.pin);                      // TODO - can this be done in constructor?
@@ -297,11 +315,12 @@ void setup() {
     sendToI2CSlave("play-0", 1);                    
 
     // TODO - set LED pulse to Green
+
+    servosToStart();                                              // this is a temporary function in f5 to center the servos.
   }
 
-  servosToStart();
-  // this is a temporary function in f5 to center the servos.
- 
+  // TODO - I think on startup, the servos need an initial PWM signal.
+  //    servosToStart() is definitely not doing anything, because MoServo logic thinks they are already as start
   
 } // end SETUP
 
@@ -386,136 +405,31 @@ void loop() {
 
   
 
-// this was a millis function to send random int every 2 seconds for servo demonstration
+  // this was a millis function to send random int every 2 seconds for servo demonstration
   if (isAwake) {
-//  if (false) {      // turned this routine off for now, as I try to reimplement moServo class
-    
     currentMillis = millis();
-    if (currentMillis - previousTestServoMillis >= 500) {
+    if (currentMillis - previousTestServoMillis >= 1500) {
       previousTestServoMillis = currentMillis;
+      int randomDegreeCommand = (int)random(35,145);
 
-//      int randomChannel = (int)random(2,12);
-      int randomMicros = (int)random(1050,2050);
-      int randomDegreeCommand = (int)random(45,135);
+      Serial.print("Random Degree Command: "); Serial.print(randomDegreeCommand);
+      Serial.print("      microseconds = "); Serial.println(map(randomDegreeCommand, 0, 180, 2500, 500));
+
+      moServo00Louvers.commandTo(randomDegreeCommand);
+      // skipping 1 and 2 (siren)
+      newTestServo3.commandTo(randomDegreeCommand);
+          // TODO - make servos 4 and 5 (pitch and roll) react to 6050 MPU
+      newTestServo4.commandTo(randomDegreeCommand);
+      newTestServo5.commandTo(randomDegreeCommand);
+      newTestServo6.commandTo(randomDegreeCommand);
+      newTestServo7.commandTo(randomDegreeCommand);
+
+      newTestServo8.commandTo(randomDegreeCommand);
+      newTestServo9.commandTo(randomDegreeCommand);
       
-//      Serial.print("Moving servo ");
-//      Serial.print(testChannel);
-//      Serial.print(" to new random microseconds = ");
-//      Serial.println(randomDegree);
+//      Serial.print("Moving servo "); Serial.print(testChannel);
+//      Serial.print(" to new random microseconds = "); Serial.println(randomDegree);
   
-  //    pwmServoBoard_1.writeMicroseconds(1, 1550);   // appears to be centered, once arm is on
-            
-  
-      switch(testChannel) {
-        case 0:
-          // channel 0 will be head louvres
-          break;    
-        case 1:
-          // siren lift
-//          pwmServoBoard_1.writeMicroseconds(1, randomDegree);               
-          break;
-        case 2:
-          // channel 2 would be siren spin
-          break;
-        case 3:
-          pwmServoBoard_1.writeMicroseconds(3, randomMicros);               // head yaw
-          break;
-        case 4:
-          pwmServoBoard_1.writeMicroseconds(4, randomMicros);               // head pitch
-          break;
-        case 5:
-          pwmServoBoard_1.writeMicroseconds(5, randomMicros);               // head roll
-          break;
-        case 6:
-          pwmServoBoard_1.writeMicroseconds(6, randomMicros);               // neck lift
-          break;
-        case 7:
-          pwmServoBoard_1.writeMicroseconds(7, randomMicros);               // neck lean
-          break;
-        case 8:
-          // shoulder track
-          Serial.println();
-          Serial.print("Sending command of "); 
-          Serial.print(randomDegreeCommand);
-          Serial.println(" degrees to 8 and 9.");
-//          pwmServoBoard_2.writeMicroseconds(8, randomMicros);               
-          newTestServo8.commandTo(randomDegreeCommand);
-          
-          break;
-        case 9:
-          // shoulder shrug
-//          Serial.print("Sending command of "); 
-//          Serial.print(randomDegreeCommand);
-//          Serial.println(" degrees to 9.");
-//          pwmServoBoard_2.writeMicroseconds(15, randomMicros);               
-//          Serial.println(newTestServo.getName());   // does it exist?
-//            newTestServo.writeMicroseconds(randomMicros);
-            Serial.println();
-            Serial.print("Sending command of "); 
-            Serial.print(randomDegreeCommand);
-            Serial.println(" degrees to 9.");
-            newTestServo9.commandTo(randomDegreeCommand);
-          // take int degrees
-          break;
-        case 10:
-//          pwmServoBoard_2.writeMicroseconds(10, randomMicros);              // arm pivot
-
-          // temp using to test neck lean
-          Serial.println();
-            Serial.print("Sending command of "); 
-            Serial.print(randomDegreeCommand);
-            Serial.println(" degrees to 10.");
-            newTestServo10.commandTo(randomDegreeCommand);
-          break;
-        case 11:
-          pwmServoBoard_2.writeMicroseconds(11, randomMicros);              // arm extension
-          break;
-        case 12:
-            // 0 is head louvres. No servo there yet.
-//          pwmServoBoard_1.writeMicroseconds(1, randomMicros);
-            // 2 is siren spin ?
-          pwmServoBoard_1.writeMicroseconds(3, randomMicros);
-          pwmServoBoard_1.writeMicroseconds(4, randomMicros);
-          pwmServoBoard_1.writeMicroseconds(5, randomMicros);
-          pwmServoBoard_1.writeMicroseconds(6, randomMicros);
-          pwmServoBoard_1.writeMicroseconds(7, randomMicros);
-
-
-          Serial.println();
-          Serial.print("Sending command of "); 
-          Serial.print(randomDegreeCommand);
-          Serial.println(" degrees to 8, 9 and 10.");
-          newTestServo8.commandTo(randomDegreeCommand);
-          newTestServo9.commandTo(randomDegreeCommand);
-          newTestServo10.commandTo(randomDegreeCommand);
-          
-//          pwmServoBoard_2.writeMicroseconds(8, randomMicros);
-//          pwmServoBoard_2.writeMicroseconds(9, randomMicros);
-//          pwmServoBoard_2.writeMicroseconds(10, randomMicros);
-//          pwmServoBoard_2.writeMicroseconds(11, randomMicros);
-//          pwmServoBoard_2.writeMicroseconds(12, randomMicros);
-            // 13 is scrubber motor?
-//          pwmServoBoard_2.writeMicroseconds(14, randomMicros);
-//          pwmServoBoard_2.writeMicroseconds(15, randomMicros);
-//            newTestServo.commandTo(randomDegreeCommand);  
-          break;
-        default:
-          break;
-      } 
-
-      // get rid of the switch
-//    if testChannel < 8
-//          pwmServoBoard_1.writeMicroseconds(testChannel, randomMicros);
-//    } else {
-//          pwmServoBoard_2.writeMicroseconds(testChannel, randomMicros);
-//    }
-
-      testChannel = testChannel + 1;
-      if (testChannel > 12) {
-        testChannel = 0;
-      }
-      
-
       // f5 servosToCenter() method will center all test servos. 
       //     Will need similar functionality with servo class, to be called when isAsleep.
       
@@ -548,9 +462,34 @@ void loop() {
 //  servo1.updateServo();
 
 //  newTestServo.updateServo();   // this runs every loop to move the servo just a touch towards destination
+
+//  for (int i = 0; i < 4; i++) {
+//    int microsec = 0;
+//    Serial.print("Update servo ); Serial.println(i);
+//    if (i <=7) {
+//      // pwm board 1
+//    } else {
+//      // pwm board 2
+//    }
+////  }
+
+
+// ** UPDATING  the servos each loop
+  pwmServoBoard_1.writeMicroseconds(moServo00Louvers.getChannel(), moServo00Louvers.updateServo());
+  
+  pwmServoBoard_1.writeMicroseconds(moServo01SirenLift.getChannel(), moServo01SirenLift.updateServo());
+  pwmServoBoard_1.writeMicroseconds(moServo02SirenSpin.getChannel(), moServo02SirenSpin.updateServo());
+    // might put these in a conditional?
+
+  pwmServoBoard_1.writeMicroseconds(newTestServo3.getChannel(), newTestServo3.updateServo());
+  pwmServoBoard_1.writeMicroseconds(newTestServo4.getChannel(), newTestServo4.updateServo());
+  pwmServoBoard_1.writeMicroseconds(newTestServo5.getChannel(), newTestServo5.updateServo());
+  pwmServoBoard_1.writeMicroseconds(newTestServo6.getChannel(), newTestServo6.updateServo());
+  pwmServoBoard_1.writeMicroseconds(newTestServo7.getChannel(), newTestServo7.updateServo());
+
   pwmServoBoard_2.writeMicroseconds(newTestServo8.getChannel(), newTestServo8.updateServo());
   pwmServoBoard_2.writeMicroseconds(newTestServo9.getChannel(), newTestServo9.updateServo());
-  pwmServoBoard_2.writeMicroseconds(newTestServo10.getChannel(), newTestServo10.updateServo());
+
 
   // TODO - Testing: It does sort of feel like iOS app can't do anything while the servo is still moving.
   //    This may be because of the delay built into the iOS app when it comes to the slider, so that app doesn't flood
@@ -558,7 +497,7 @@ void loop() {
 
  
   if (isAwake != previousIsAwake) {
-  // All this appears to do is set previousIsAwake when there is a change
+    // All this appears to do is set previousIsAwake when there is a change
     
     /* BUG - something causes isAwake or the LCD to go to 'sleeping' after about 20 seconds
      *  
@@ -570,8 +509,7 @@ void loop() {
      *  the remaining change detection statement here still keeps bug away
     */
   
-  //    Serial.print("isAwake state changed to: ");
-  //    Serial.println(isAwake);
+  //    Serial.print("isAwake state changed to: "); Serial.println(isAwake);
       previousIsAwake = isAwake;
   }
 
@@ -580,39 +518,5 @@ void loop() {
   
   // 5A --  the Foreign Contaminent red siren light on M-O's head, currently set to trigger via #0 on the IR remote
   updateSirenLamp();
-
-
-//pwmServoBoard_1.setPWM(1, 0, servo1pos);
-//pwmServoBoard_1.setPWM(0, 0, servo1pos);
-
-// TODO - every 2 seconds, commends servo1.commandTo(x)
-//Serial.print("Servo12 is at: "); Serial.println(servo1.currentPosition);
-
-     
-
-      
-// THEN - command pwmServoBoard_1.setPWM(0, 0, servo1pos)
-//pwmServoBoard_1.writeMicroseconds(0, servo1.currentPosition);
-//pwmServoBoard_1.writeMicroseconds(0, 1500);
-
-//
-// Change this to Servo0. Servo1 is the MoServo connected to pin 12, controlled by iOS.
-
-//Serial.print("Servo 1: "); Serial.println(servo1pos);
-//if (servo1cw == false) {
-//  servo1pos += 1;
-//} else {
-//  servo1pos -= 1;
-//}
-//
-//if (servo1pos >= SERVOMAX) {
-//  servo1cw = true;
-//  delay(2000);
-//} else if (servo1pos <= SERVOMIN) {
-//  servo1cw = false;
-//    delay(2000);
-//}
-
-
                             
 } // end main LOOP

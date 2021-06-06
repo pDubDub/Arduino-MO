@@ -138,6 +138,8 @@ String readSerial(){
     Serial.print("readSerial() BT Receeived: ");
     Serial.println(reply);
     // Serial.println("Houston we have a signal!");
+
+    // TODO - this statement is triggering from the IR remote
   }
   String command(reply);
   return command;
@@ -161,12 +163,12 @@ void readFromBluetooth() {
     previousBTMillis = currentMillis;
                  
     // reacting to various BT message from iOS app:
-    newCommand = readSerial();                // reads message from BTE
-    if(newCommand.length() > 1) {             // and if longer than 0 characters…
-      Serial.println((String)" readFromBluetooth() New BT Command: " + newCommand);       // TODO - this line is redundant, as readSerial() also prints
-//      Serial.println(newCommand);
-      // lastCommand = newCommand;
-      // lastCommand variable is for detecting change, so we would only scan switch if it's a new command
+    newBTCommand = readSerial();                // reads message from BTE
+    if(newBTCommand.length() > 1) {             // and if longer than 0 characters…
+      Serial.println((String)" readFromBluetooth() New BT Command: " + newBTCommand);       // TODO - this line is redundant, as readSerial() also prints
+//      Serial.println(newBTCommand);
+      // lastBTCommand = newBTCommand;
+      // lastBTCommand variable is for detecting change, so we would only scan switch if it's a new command
 
       // TODO - because emotes can be triggered from IR, iOS or even other emotes, or even random reactions,
       //   each IF or CASE should trigger a behavior that should live in f2_stateAndMood
@@ -174,7 +176,7 @@ void readFromBluetooth() {
 
 
       
-      if (newCommand == "iOSOK") {
+      if (newBTCommand == "iOSOK") {
         Serial.println(" iOS app has connected via Bluetooth");
         Serial.println((String)" - Sending isAwake state and \"M-O Connected\" as confirmation back to iOS app");
 
@@ -202,32 +204,32 @@ void readFromBluetooth() {
         //    characters and numbers, but as I'm sending strings, it doesn't make a functional difference.
 
       // These three commands come from the iOS app Segmented Control
-      } else if (newCommand == "goSleep") {
+      } else if (newBTCommand == "goSleep") {
         Serial.println(" iOS command is \"goSleep\"");
         if (isAwake) {
           toggleAwakeState();
         }
-      } else if (newCommand == "goIdle") {
+      } else if (newBTCommand == "goIdle") {
         Serial.println(" iOS command is \"GoIdle\"");
         if (!isAwake) {
           toggleAwakeState();
         }
-      } else if (newCommand == "goActiv") {
+      } else if (newBTCommand == "goActiv") {
         Serial.println(" iOS command is \"goActive\"");
         if (!isAwake) {
           toggleAwakeState();
         }
-      } else if (newCommand == "sleep" || newCommand == "awake:0") {
+      } else if (newBTCommand == "sleep" || newBTCommand == "awake:0") {
         toggleAwakeState();                    // TODO - does this work, just toggling, or can I reach a state where sleep on app is triggering wake here?
-      } else if (newCommand == "wake" || newCommand == "awake:1") {
+      } else if (newBTCommand == "wake" || newBTCommand == "awake:1") {
         toggleAwakeState();
-      } else if (newCommand == "Hello World!") {
+      } else if (newBTCommand == "Hello World!") {
         Serial.println(" Replying \"Hello\" to iOS App to confirm comms functionality.");
         Serial1.write("M-O says Hello");        // send text back to M-O BLE app on iPhone
 
         // TODO - maybe this command calls a function that doesn't just say "Hello" on iOS screen, but resends state messages (isAsleep, etc) to all 3 'slaves.'
         
-      } else if (newCommand == "M-O") {
+      } else if (newBTCommand == "M-O") {
         Serial1.write("M-O says Mo");
         sendToI2CSlave("play-4", 1);
 
@@ -235,32 +237,32 @@ void readFromBluetooth() {
         //   and have MO-2 hear "emo:MO" and then play the "MO" emote, which will have both eyes and sound
         //   and use same model the rest of the way down
         
-      } else if (newCommand == "Yip") {
+      } else if (newBTCommand == "Yip") {
         Serial1.write("M-O says Yip");
         sendToI2CSlave("play-6", 1);
-      } else if (newCommand == "Huh") {
+      } else if (newBTCommand == "Huh") {
         sendToI2CSlave("play-11", 1);
-      } else if (newCommand == "speak") {
+      } else if (newBTCommand == "speak") {
         sendToI2CSlave("speak", 1);
-      } else if (newCommand == "scan") {
+      } else if (newBTCommand == "scan") {
         // the scan command should trigger sound
-      } else if (newCommand == "dirty") {
+      } else if (newBTCommand == "dirty") {
         // the dirty command should trigger the foreigh contaminant sound
-      } else if (newCommand == "clean") {
+      } else if (newBTCommand == "clean") {
         // the clean command should trigger the all clean sound
-      } else if (newCommand == "siren:0") {
+      } else if (newBTCommand == "siren:0") {
         // the siren:0 and siren:1 commands should toggle the siren light  
      
 
-      } else if (newCommand.startsWith("A1")) {                               // first implementation of iOS moving a servo
-        newCommand.remove(0,3);                                               // removes first 3 characters
+      } else if (newBTCommand.startsWith("A1")) {                               // first implementation of iOS moving a servo
+        newBTCommand.remove(0,3);                                               // removes first 3 characters
         
-//        servo1.commandTo(newCommand, 800);                                    // now accepts a duration in microseconds
+//        servo1.commandTo(newBTCommand, 800);                                    // now accepts a duration in microseconds
         // this is a deprecated moServo object, before I implemented the PWM Servo Boards
 
       }
       
-    } // end newcommand.length() IF
+    } // end newBTCommand.length() IF
   } // end millis IF
 }
 
