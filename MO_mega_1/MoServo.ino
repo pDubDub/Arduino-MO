@@ -117,9 +117,9 @@ class MoServo {
 //        }
 
         int getPosition() {
-          return currentPosition;
-
-          // TODO - should add a map() or a computed property so this function can return degrees instead of microseconds
+          // returns current position in degrees
+          
+          return map(currentPosition, 2500, 500, 0, 180);
         }
 
         String getName() {
@@ -165,6 +165,14 @@ class MoServo {
           limitCheck();
         }
 
+        void commandTo(int degrees, int duration) {
+          newServoCommand = map(degrees, 0, 180, 2500, 500);
+          newDuration = duration;
+          limitCheck();
+        }
+
+                    // TODO - what are the actual left-right limits? Does it vary with different servos?
+                    
         void commandTo(String degreeString) {                             // this is implemented method to move moServo objects.
           newServoCommand = map(degreeString.toInt(), 0, 180, 2400, 500);      // left-limit was 2500, but found it was clipping the end of moves. (i.e. no distinction 0-10 degrees)
           newDuration = 1000;
@@ -349,8 +357,6 @@ class MoServo {
               // turned off these print statements, to see if they were causing anomalous movement.
 //                Serial.print("   write to channel "); Serial.print(CHANNEL_NUM); Serial.print(" to "); Serial.print(currentPosition); Serial.println(" μs.");
 
-                
-                
 //                millisOfLastMove = currentUpdateMillis;
             }
 

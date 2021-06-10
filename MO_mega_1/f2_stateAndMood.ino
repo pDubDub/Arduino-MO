@@ -12,10 +12,16 @@ void toggleAwakeState() {
   isAwake = !isAwake;
 
   Serial.print("\n **** M-O isAwake toggled to "); Serial.print(isAwake ? "Awake" : "Asleep"); Serial.println(" ****");
-  
   String message2send = "";
+  
   if (isAwake) { 
     message2send = "awake:1";
+    // TODO - Why is there not a pulsingLEDisOn = false here?
+
+    moServo14Torso.commandTo(150);
+      // tried making this goToCenter() but it did not work. ??
+
+    
   } else { 
     message2send = "awake:0";
     pulsingLEDisOn = true;

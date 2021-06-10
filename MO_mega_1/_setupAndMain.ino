@@ -144,17 +144,23 @@
   MoServo moServo01SirenLift = MoServo("sirenLift01", 1, 700, 2101, 2100, 2100);            // siren lift
   MoServo moServo02SirenSpin = MoServo("sirenSpin02", 2, 1400, 1600, 1500, 1500);           // siren spin
       // Siren Spin servo works like this, with easing, although that servo is really noisy.
-  MoServo newTestServo3 = MoServo("testPan3", 3, 900, 2000, 1500, 1500);                    // head pan
-  MoServo newTestServo4 = MoServo("testTilt4", 4, 1000, 2000, 1500, 1500);                  // head pitch
-  MoServo newTestServo5 = MoServo("testRoll5", 5, 1000, 2000, 1500, 1500);                  // head roll
-  MoServo newTestServo6 = MoServo("test6", 6, 1000, 2000, 1500, 1500);                      // neck lift
-  MoServo newTestServo7 = MoServo("test7", 7, 1300, 1600, 1420, 1420);                      // neck lean
+  MoServo moServo03HeadPan = MoServo("headPan3", 3, 900, 2000, 1500, 1500);                    // head pan
+  MoServo newTestServo4 = MoServo("headPitch4", 4, 1000, 2000, 1500, 1500);                  // head pitch
+  MoServo newTestServo5 = MoServo("headRoll5", 5, 1000, 2000, 1500, 1500);                  // head roll
+  MoServo newTestServo6 = MoServo("neckLift6", 6, 1000, 2000, 1500, 1500);                      // neck lift
+  MoServo newTestServo7 = MoServo("neckLean7", 7, 1300, 1600, 1420, 1420);                      // neck lean
+    // on neck lean, lower microseconds are more forward
+    // 1420 tuned for pretty close center position
   
-  MoServo newTestServo8 = MoServo("testTrack8", 8, 1000, 2000, 1500, 1500);
+  MoServo moServo08ArmTrack = MoServo("shoulderTrack8", 8, 1000, 2000, 1500, 1500);
       // TODO - altering the last two values seems to crash servo8
-  MoServo newTestServo9 = MoServo("testShrug9", 9, 1000, 2000, 1500, 1500);
-  MoServo newTestServo10 = MoServo("testLean10", 10, 1300, 1600, 1420, 1420);   // tuned for pretty close center position
-          // on neck lean, lower microseconds are more forward
+  MoServo moServo09ArmShrug = MoServo("shoulderShrug9", 9, 1000, 2000, 1500, 1500);
+  MoServo moServo10ArmLift = MoServo("armLift10", 10, 1000, 25000, 1001, 1500);   
+  MoServo moServo11ArmExtend = MoServo("armExtend11", 11, 800, 2201, 2200, 2200);                
+    // 12 will be scrubber cover flip
+    // 13 will be scrubber motor
+  MoServo moServo14Torso = MoServo("torsoLift14", 14, 1000, 2000, 2000, 1500);
+  MoServo moServo15Foot = MoServo("torsoFoot15", 15, 1000, 2000, 2000, 1500);
 
 //  int microsec = 0;
 
@@ -417,15 +423,24 @@ void loop() {
 
       moServo00Louvers.commandTo(randomDegreeCommand);
       // skipping 1 and 2 (siren)
-      newTestServo3.commandTo(randomDegreeCommand);
-          // TODO - make servos 4 and 5 (pitch and roll) react to 6050 MPU
-      newTestServo4.commandTo(randomDegreeCommand);
-      newTestServo5.commandTo(randomDegreeCommand);
+      moServo03HeadPan.commandTo(randomDegreeCommand);
+          // servos 4 and 5 (pitch and roll) currently react to 6050 MPU
+          // In the future, this would be in addition to any volitional movement command.
+          // TODO - this movement needs to be faster. Perhaps the MPU input is before/in-addition to the easing calculation.
+
+          // Perhaps every servo has an "Override" or "Base" property. 
+          //     This value would be added to the easing calculation return value.
+          //     That way things like head pitch would automatically compensate for neck lean,
+          //      every update, instead of every 1.5 seconds like it's doing in this loop.
+      newTestServo4.commandTo(90+pitch*3);
+      newTestServo5.commandTo(90+roll*3);
       newTestServo6.commandTo(randomDegreeCommand);
       newTestServo7.commandTo(randomDegreeCommand);
 
-      newTestServo8.commandTo(randomDegreeCommand);
-      newTestServo9.commandTo(randomDegreeCommand);
+      moServo08ArmTrack.commandTo(randomDegreeCommand);
+      moServo09ArmShrug.commandTo(randomDegreeCommand);
+      moServo10ArmLift.commandTo(randomDegreeCommand);
+      moServo11ArmExtend.commandTo(randomDegreeCommand);
       
 //      Serial.print("Moving servo "); Serial.print(testChannel);
 //      Serial.print(" to new random microseconds = "); Serial.println(randomDegree);
@@ -479,17 +494,22 @@ void loop() {
   
   pwmServoBoard_1.writeMicroseconds(moServo01SirenLift.getChannel(), moServo01SirenLift.updateServo());
   pwmServoBoard_1.writeMicroseconds(moServo02SirenSpin.getChannel(), moServo02SirenSpin.updateServo());
-    // might put these in a conditional?
+    // might put these in a conditional? But would that be any faster than conditional in the moServo class?
 
-  pwmServoBoard_1.writeMicroseconds(newTestServo3.getChannel(), newTestServo3.updateServo());
+  pwmServoBoard_1.writeMicroseconds(moServo03HeadPan.getChannel(), moServo03HeadPan.updateServo());
   pwmServoBoard_1.writeMicroseconds(newTestServo4.getChannel(), newTestServo4.updateServo());
   pwmServoBoard_1.writeMicroseconds(newTestServo5.getChannel(), newTestServo5.updateServo());
   pwmServoBoard_1.writeMicroseconds(newTestServo6.getChannel(), newTestServo6.updateServo());
   pwmServoBoard_1.writeMicroseconds(newTestServo7.getChannel(), newTestServo7.updateServo());
 
-  pwmServoBoard_2.writeMicroseconds(newTestServo8.getChannel(), newTestServo8.updateServo());
-  pwmServoBoard_2.writeMicroseconds(newTestServo9.getChannel(), newTestServo9.updateServo());
-
+  pwmServoBoard_2.writeMicroseconds(moServo08ArmTrack.getChannel(), moServo08ArmTrack.updateServo());
+  pwmServoBoard_2.writeMicroseconds(moServo09ArmShrug.getChannel(), moServo09ArmShrug.updateServo());
+  pwmServoBoard_2.writeMicroseconds(moServo10ArmLift.getChannel(), moServo10ArmLift.updateServo());
+  pwmServoBoard_2.writeMicroseconds(moServo11ArmExtend.getChannel(), moServo11ArmExtend.updateServo());
+    // 12 will be scrubber cover flip
+    // 13 will be scrubber motor
+  pwmServoBoard_2.writeMicroseconds(moServo14Torso.getChannel(), moServo14Torso.updateServo());
+  pwmServoBoard_2.writeMicroseconds(moServo15Foot.getChannel(), moServo15Foot.updateServo());
 
   // TODO - Testing: It does sort of feel like iOS app can't do anything while the servo is still moving.
   //    This may be because of the delay built into the iOS app when it comes to the slider, so that app doesn't flood

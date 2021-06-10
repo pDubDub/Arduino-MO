@@ -378,24 +378,24 @@ void read6050imu() {
   GyroY = GyroY - GyroErrorY; // GyroErrorY ~(3.2)
 //  GyroZ = GyroZ - GyroErrorZ; // GyroErrorZ ~ (1.12) //*
   
-  // Replaced original algorithm with a better Complementary Filter formula that provided much better, more consistent results. It fewer steps.
+  // Replaced original algorithm with a better Complementary Filter formula that provided much better, more consistent results. In fewer steps.
   //     http://www.pieter-jan.com/node/11
-  if (!isnan(roll)) {                                             // debug - trying to track down Nan error
-    roll = 0.98 * (roll + GyroX * elapsedTime6050) + 0.02 * accAngleX;
+  if (!isnan(pitch)) {                                             // debug - trying to track down Nan error
+    pitch = 0.98 * (pitch + GyroX * elapsedTime6050) + 0.02 * accAngleX;
   } else {                                                        // if it is NaN
-    Serial.println("*******************roll Nan**************");
-    Serial.print("\troll: "); Serial.print(roll); 
+    Serial.println("*******************pitch Nan**************");
+    Serial.print("\tpitch: "); Serial.print(pitch); 
     Serial.print("\tGyroX: "); Serial.print(GyroX);
     Serial.print("\ttime: "); Serial.print(elapsedTime6050);
     Serial.print("\taccAngleX: "); Serial.println(accAngleX);
-    roll = 0;
+    pitch = 0;
   }
 
-  if (!isnan(pitch)) {
-    pitch = 0.98 * (pitch + GyroY * elapsedTime6050) + 0.02 * accAngleY;
+  if (!isnan(roll)) {
+    roll = 0.98 * (roll + GyroY * elapsedTime6050) + 0.02 * accAngleY;
   } else {
-    pitch = 0;
-    Serial.println("*******************pitch Nan**************");
+    roll = 0;
+    Serial.println("*******************roll Nan**************");
   }
     // pw: These DID catch the NaN and recover.
     //   I don't know what setting to 0 actually does to behavior, if NaN occurs when tilted.
@@ -404,15 +404,15 @@ void read6050imu() {
   
                     // Do I maybe need to perform a string.toDouble() to dump any NaN's?
                     
-//  roll = 0.98 * (roll + GyroX * elapsedTime6050) + 0.02 * accAngleX;
-//  pitch = 0.98 * (pitch + GyroY * elapsedTime6050) + 0.02 * accAngleY;
+//  pitch = 0.98 * (pitch + GyroX * elapsedTime6050) + 0.02 * accAngleX;
+//  roll = 0.98 * (roll + GyroY * elapsedTime6050) + 0.02 * accAngleY;
 //  yaw = (yaw + GyroZ * elapsedTime6050); //*                    // Original tutorial never implemented accAngleZ.
 
    // * I don't actually use or have plans for head yaw (from the 6050) so I commented out these lines.
 
-  // note: I'm changing the order, as pitch-roll-yaw is a more natural sequence.
-//  Serial.print(" p: "); Serial.print(pitch >= 0 ? " " : ""); Serial.print(pitch);
-//  Serial.print(" r: "); Serial.print(roll >= 0 ? " " : ""); Serial.print(roll);
+  // note: I'm changing the order, as roll-pitch-yaw is a more natural sequence.
+//  Serial.print(" p: "); Serial.print(roll >= 0 ? " " : ""); Serial.print(roll);
+//  Serial.print(" r: "); Serial.print(pitch >= 0 ? " " : ""); Serial.print(pitch);
 //  Serial.print(" y: "); Serial.print(yaw >= 0 ? " " : ""); Serial.println(yaw);
 
   // pw July 4 2020 : mpu6050 code is currently working after being moved to MO-1. 

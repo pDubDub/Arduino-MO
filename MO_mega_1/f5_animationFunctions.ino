@@ -12,10 +12,10 @@ void updateSirenLamp() {
     if (sirenOn == true) { 
 //      sirenSpinServo.write(100);                        // tells continuous servo to go (90 ~ stopped, 100 is pretty close to 60rpm)
       
-      moServo01SirenLift.commandTo(170);                       // sends lift servo to 'up' position
+      moServo01SirenLift.commandTo(170, 1200);                       // sends lift servo to 'up' position
         
         // TODO -- might replace with .writeMicroseconds() to get better control of throw limits.
-        // TODO -- should take about 1.2 seconds to deploy
+        // should take about 1.2 seconds to deploy
 
       moServo02SirenSpin.commandTo(100);
 
@@ -50,68 +50,45 @@ void servosToCenter() {
   // this is a temporary function, that centers all of the test servos
   Serial.println("servosToCenter called");
  
-  moServo00Louvers.goToCenter();                         // head louvres
-  moServo01SirenLift.goToCenter();
-//  pwmServoBoard_1.writeMicroseconds(1, 1500);
-
-  newTestServo3.goToCenter();
-  newTestServo4.goToCenter();
-  newTestServo5.goToCenter();
-  newTestServo6.goToCenter();
-  newTestServo7.goToCenter();
-   
-//  pwmServoBoard_1.writeMicroseconds(1, 1500);         // siren lift
+  moServo00Louvers.goToCenter();                        // head louvres
+  moServo01SirenLift.goToCenter();                      // siren lift
     // 2 is siren spin
-  newTestServo3.goToCenter();                           // head yaw
-//  pwmServoBoard_1.writeMicroseconds(4, 1500);         // head pitch
-//  pwmServoBoard_1.writeMicroseconds(5, 1500);         // head roll
-//  pwmServoBoard_1.writeMicroseconds(6, 1500);         // neck lift
-//  pwmServoBoard_1.writeMicroseconds(7, 1500);         // neck lean
+  moServo03HeadPan.goToCenter();                        // head yaw
+  newTestServo4.goToCenter();                           // head pitch
+  newTestServo5.goToCenter();                           // head roll
+  newTestServo6.goToCenter();                           // neck lift
+  newTestServo7.goToCenter();                           // neck lean
 
   // these are new commands, using easing, that send a command, and update every main loop
-  newTestServo8.goToCenter();
-  newTestServo9.goToCenter();
-  newTestServo10.goToCenter();
-
-   
-  // some of these are old commands, that send the servo directly to a position
-
-
-//  pwmServoBoard_2.writeMicroseconds(8, 1500);         // shoulder track
-//  pwmServoBoard_2.writeMicroseconds(9, 1500);         // shoulder shrug
-//  pwmServoBoard_2.writeMicroseconds(10, 1500);        // arm pivot
-  pwmServoBoard_2.writeMicroseconds(11, 1500);        // arm extension
-  pwmServoBoard_2.writeMicroseconds(12, 1500);        // scrubber cover
+  moServo08ArmTrack.goToCenter();                       // shoulder track                 
+  moServo09ArmShrug.goToCenter();                       // shoulder shrug
+  moServo10ArmLift.goToCenter();                          // arm pivot
+  moServo11ArmExtend.goToCenter();                      // arm extension
+    // 12 will be scrubber cover flip
     // 13 is scrubber motor
-  pwmServoBoard_2.writeMicroseconds(14, 1500);        // torso lift
-  pwmServoBoard_2.writeMicroseconds(15, 1500);        // foot lift
+  moServo14Torso.goToCenter();                          // torso lift
+  moServo15Foot.goToCenter();                           // foot lift
 }
  
 void servosToStart() {
   Serial.println("servosToStart called.");
 
-  moServo00Louvers.goToStart();                          // head louvres
-//  pwmServoBoard_1.writeMicroseconds(0,1500);
-  moServo01SirenLift.goToStart();
-  moServo02SirenSpin.goToStart();
-//  pwmServoBoard_1.writeMicroseconds(3,1500);
-
-  
-//  pwmServoBoard_1.writeMicroseconds(1, 1500);         // siren lift
-    // 2 is siren spin
+  moServo00Louvers.goToStart();                         // head louvres
+  moServo01SirenLift.goToStart();                       // siren lift
+  moServo02SirenSpin.goToStart();                       // 2 is siren spin
+  moServo03HeadPan.goToStart();                            // head yaw
+  newTestServo4.goToStart();                            // head pitch
+  newTestServo5.goToStart();                            // head roll
+  newTestServo6.goToStart();                            // neck lift
+  newTestServo7.goToStart();                            // neck lean
     
-  newTestServo3.goToStart();                          // head yaw
-  newTestServo4.goToStart();
-  newTestServo5.goToStart();
-  newTestServo6.goToStart();
-  newTestServo7.goToStart();
-                           
-//  pwmServoBoard_1.writeMicroseconds(4, 1500);         // head pitch
-//  pwmServoBoard_1.writeMicroseconds(5, 1500);         // head roll
-//  pwmServoBoard_1.writeMicroseconds(6, 1500);         // neck lift
-//  pwmServoBoard_1.writeMicroseconds(7, 1500);         // neck lean
-  
-  newTestServo8.goToStart();
-  newTestServo9.goToStart();
-  newTestServo10.goToStart();
+    // pwm board 2...  
+  moServo08ArmTrack.goToStart();
+  moServo09ArmShrug.goToStart();
+  moServo10ArmLift.goToStart();
+  moServo11ArmExtend.goToStart();
+    // 12 will be scrubber cover flip
+    // 13 is scrubber motor
+  moServo14Torso.goToStart();
+  moServo15Foot.goToStart();
 }
