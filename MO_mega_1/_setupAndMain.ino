@@ -144,18 +144,18 @@
   MoServo moServo01SirenLift = MoServo("sirenLift01", 1, 700, 2101, 2100, 2100);            // siren lift
   MoServo moServo02SirenSpin = MoServo("sirenSpin02", 2, 1400, 1600, 1500, 1500);           // siren spin
       // Siren Spin servo works like this, with easing, although that servo is really noisy.
-  MoServo moServo03HeadPan = MoServo("headPan3", 3, 900, 2000, 1500, 1500);                    // head pan
-  MoServo newTestServo4 = MoServo("headPitch4", 4, 1000, 2000, 1500, 1500);                  // head pitch
-  MoServo newTestServo5 = MoServo("headRoll5", 5, 1000, 2000, 1500, 1500);                  // head roll
-  MoServo newTestServo6 = MoServo("neckLift6", 6, 1000, 2000, 1500, 1500);                      // neck lift
+  MoServo moServo03HeadPan = MoServo("headPan3", 3, 900, 2100, 1500, 1500);                    // head pan
+  MoServo newTestServo4 = MoServo("headPitch4", 4, 900, 2100, 1500, 1500);                  // head pitch
+  MoServo newTestServo5 = MoServo("headRoll5", 5, 900, 2100, 1500, 1500);                  // head roll
+  MoServo newTestServo6 = MoServo("neckLift6", 6, 900, 2101, 2100, 1500);                      // neck lift
   MoServo newTestServo7 = MoServo("neckLean7", 7, 1300, 1600, 1420, 1420);                      // neck lean
     // on neck lean, lower microseconds are more forward
     // 1420 tuned for pretty close center position
   
-  MoServo moServo08ArmTrack = MoServo("shoulderTrack8", 8, 1000, 2000, 1500, 1500);
+  MoServo moServo08ArmTrack = MoServo("shoulderTrack8", 8, 900, 2100, 1500, 1500);
       // TODO - altering the last two values seems to crash servo8
-  MoServo moServo09ArmShrug = MoServo("shoulderShrug9", 9, 1000, 2000, 1500, 1500);
-  MoServo moServo10ArmLift = MoServo("armLift10", 10, 1000, 25000, 1001, 1500);   
+  MoServo moServo09ArmShrug = MoServo("shoulderShrug9", 9, 900, 2100, 1500, 1500);
+  MoServo moServo10ArmLift = MoServo("armLift10", 10, 1000, 2500, 1001, 1500);   
   MoServo moServo11ArmExtend = MoServo("armExtend11", 11, 800, 2201, 2200, 2200);                
     // 12 will be scrubber cover flip
     // 13 will be scrubber motor
@@ -210,7 +210,7 @@ void setup() {
 
   // 1B - Bluetooth
   Serial.println(" *  Configuring Bluetooth communication:");
-  Serial1.begin(9600);
+  Serial2.begin(9600);
   sendBTCommand("AT");                  // calls sendBTCommand function to setup the BlueTooth module from Arduino
   sendBTCommand("AT+ROLE0");            // makes AT-09 BT module a peripheral
   sendBTCommand("AT+UUID0xFFE0");
@@ -417,30 +417,61 @@ void loop() {
     if (currentMillis - previousTestServoMillis >= 1500) {
       previousTestServoMillis = currentMillis;
       int randomDegreeCommand = (int)random(35,145);
-
-      Serial.print("Random Degree Command: "); Serial.print(randomDegreeCommand);
+      testChannel = (int)random(0,10);
+      
+      switch(testChannel) {
+        case 0:
+          Serial.print("Head Louvers"); moServo00Louvers.commandTo(randomDegreeCommand); break;
+        case 1:
+          Serial.print("Head Yaw"); moServo03HeadPan.commandTo(randomDegreeCommand); break;
+        case 2:
+          Serial.print("Head Pitch"); newTestServo4.commandTo(randomDegreeCommand); break;
+        case 3:
+          Serial.print("Head Tilt"); newTestServo5.commandTo(randomDegreeCommand); break;
+        case 4:
+          Serial.print("Neck Lift"); newTestServo6.commandTo(randomDegreeCommand); break;
+        case 5:
+          Serial.print("Neck Lean and Head Pitch"); newTestServo7.commandTo(randomDegreeCommand);
+          newTestServo4.commandTo(randomDegreeCommand); break;
+        case 6:
+          Serial.print("Shoulder Track"); moServo08ArmTrack.commandTo(randomDegreeCommand); break;
+        case 7:
+          Serial.print("Shoulder Shrug"); moServo09ArmShrug.commandTo(randomDegreeCommand); break;
+        case 8:
+          Serial.print("Arm Lift"); moServo10ArmLift.commandTo(randomDegreeCommand); break;
+        case 9:
+          Serial.print("Arm Extension"); moServo11ArmExtend.commandTo(randomDegreeCommand); break;
+        case 10:
+          // 12 flip cover
+         break;
+        case 11:
+          // torso
+         break;
+      }
+      
+      Serial.print(" - Random Degree Command: "); Serial.print(randomDegreeCommand);
       Serial.print("      microseconds = "); Serial.println(map(randomDegreeCommand, 0, 180, 2500, 500));
-
-      moServo00Louvers.commandTo(randomDegreeCommand);
-      // skipping 1 and 2 (siren)
-      moServo03HeadPan.commandTo(randomDegreeCommand);
-          // servos 4 and 5 (pitch and roll) currently react to 6050 MPU
-          // In the future, this would be in addition to any volitional movement command.
-          // TODO - this movement needs to be faster. Perhaps the MPU input is before/in-addition to the easing calculation.
-
-          // Perhaps every servo has an "Override" or "Base" property. 
-          //     This value would be added to the easing calculation return value.
-          //     That way things like head pitch would automatically compensate for neck lean,
-          //      every update, instead of every 1.5 seconds like it's doing in this loop.
-      newTestServo4.commandTo(90+pitch*3);
-      newTestServo5.commandTo(90+roll*3);
-      newTestServo6.commandTo(randomDegreeCommand);
-      newTestServo7.commandTo(randomDegreeCommand);
-
-      moServo08ArmTrack.commandTo(randomDegreeCommand);
-      moServo09ArmShrug.commandTo(randomDegreeCommand);
-      moServo10ArmLift.commandTo(randomDegreeCommand);
-      moServo11ArmExtend.commandTo(randomDegreeCommand);
+      
+//      moServo00Louvers.commandTo(randomDegreeCommand);
+//      // skipping 1 and 2 (siren)
+//      moServo03HeadPan.commandTo(randomDegreeCommand);
+//          // servos 4 and 5 (pitch and roll) currently react to 6050 MPU
+//          // In the future, this would be in addition to any volitional movement command.
+//          // TODO - this movement needs to be faster. Perhaps the MPU input is before/in-addition to the easing calculation.
+//
+//          // Perhaps every servo has an "Override" or "Base" property. 
+//          //     This value would be added to the easing calculation return value.
+//          //     That way things like head pitch would automatically compensate for neck lean,
+//          //      every update, instead of every 1.5 seconds like it's doing in this loop.
+//      newTestServo4.commandTo(90+pitch*3);
+//      newTestServo5.commandTo(90+roll*3);
+//      newTestServo6.commandTo(randomDegreeCommand);
+//      newTestServo7.commandTo(randomDegreeCommand);
+//
+//      moServo08ArmTrack.commandTo(randomDegreeCommand);
+//      moServo09ArmShrug.commandTo(randomDegreeCommand);
+//      moServo10ArmLift.commandTo(randomDegreeCommand);
+//      moServo11ArmExtend.commandTo(randomDegreeCommand);
       
 //      Serial.print("Moving servo "); Serial.print(testChannel);
 //      Serial.print(" to new random microseconds = "); Serial.println(randomDegree);

@@ -103,14 +103,14 @@ void translateIR() {
 // TODO - don't love the presence of delay()'s
 void sendBTCommand(const char * command) {
   Serial.println((String)"      Sending command \"" + command + "\" to AT-09 Bluetooth module.");
-  Serial1.println(command);
+  Serial2.println(command);
   
   delay(100);                         //wait some time
   
   char reply[100];
   int i = 0;
-  while (Serial1.available()) {
-    reply[i] = Serial1.read();
+  while (Serial2.available()) {
+    reply[i] = Serial2.read();
     i += 1;
   }
 //  Serial.println((String)"      Received reply \"" + reply + "\" from AT-09 Bluetooth module.");
@@ -126,16 +126,17 @@ void sendBTCommand(const char * command) {
   delay(50);                          // wait some time
 }
 
-String readSerial(){
+String readSerialOne(){
   char reply[50];
   int i = 0;
-  while (Serial1.available()) {
-    reply[i] = Serial1.read();
+//  Serial.println("    readSerialOne()");
+  while (Serial2.available()) {
+    reply[i] = Serial2.read();
     i += 1;
   }
   reply[i] = '\0';   //end the string
   if(strlen(reply) > 0){
-    Serial.print("readSerial() BT Receeived: ");
+    Serial.print("      readSerialOne() BT Receeived: ");
     Serial.println(reply);
     // Serial.println("Houston we have a signal!");
 
@@ -147,25 +148,26 @@ String readSerial(){
 
 // this is from tutorial and doesn't appear to be used.
 void writeSerialToBLE(int value) {
-  Serial1.println(value);
+  Serial2.println(value);
 }
 
-// this is also from the tutorial, and may be superfluous, as below I was able to write to Serial1 with one command
+// this is also from the tutorial, and may be superfluous, as below I was able to write to Serial2 with one command
 void writeToBLE(char value) {
   Serial.print("Writing hex :");
   Serial.println(value, HEX);
-  Serial1.write(value);
+  Serial2.write(value);
 }
 
 void readFromBluetooth() {
   currentMillis = millis();                               // gets current time
   if (currentMillis - previousBTMillis >= 500) {         // only runs loop 0.5 seconds after last time - no delay() function used
     previousBTMillis = currentMillis;
+//    Serial.println("  readFromBluetooth()");
                  
     // reacting to various BT message from iOS app:
-    newBTCommand = readSerial();                // reads message from BTE
+    newBTCommand = readSerialOne();                // reads message from BTE
     if(newBTCommand.length() > 1) {             // and if longer than 0 characters…
-      Serial.println((String)" readFromBluetooth() New BT Command: " + newBTCommand);       // TODO - this line is redundant, as readSerial() also prints
+      Serial.println((String)" readFromBluetooth() New BT Command: " + newBTCommand);       // TODO - this line is redundant, as readSerialOne() also prints
 //      Serial.println(newBTCommand);
       // lastBTCommand = newBTCommand;
       // lastBTCommand variable is for detecting change, so we would only scan switch if it's a new command
@@ -181,26 +183,26 @@ void readFromBluetooth() {
         Serial.println((String)" - Sending isAwake state and \"M-O Connected\" as confirmation back to iOS app");
 
         // respond to iOS
-        Serial1.write("M-O Connected");                                       // confirmation to iOS app
+        Serial2.write("M-O Connected");                                       // confirmation to iOS app
             delay(1000);
         // send ready or not.
         // I guess we never get here if notReady, so we really just need to convey to iOS if we are
         //      ready:1 = sleeping
         //      ready:2 = idle/parked
         //      ready:3 = active/standing
-        Serial1.write("ready:1");                                             // makes iOS app read "Microbe Obliterator Ready"
+        Serial2.write("ready:1");                                             // makes iOS app read "Microbe Obliterator Ready"
                                                                               // and enabled control UI
             delay(500);
-        Serial1.write(isAwake ? "awake:1" : "awake:0");                       // sending isAwake state… first?  
+        Serial2.write(isAwake ? "awake:1" : "awake:0");                       // sending isAwake state… first?  
             delay(50);                                                        // don't really know if delay is neccesary, but felt safe
 
 
         // TODO - should send ready:1, ready:2 or ready:3 based on sleep, awake and standing states    
-//        Serial1.write("ready:1");                                             
+//        Serial2.write("ready:1");                                             
 
-        // Noticed that Bluetooth tutorial was originally using Serial1.print() 
+        // Noticed that Bluetooth tutorial was originally using Serial2.print() 
         //    but have carelessly started using Serial.write()
-        //    I've read that Serial1.print() is more intended to accept strings, whereas Serial1.write() is more geared towards 
+        //    I've read that Serial2.print() is more intended to accept strings, whereas Serial2.write() is more geared towards 
         //    characters and numbers, but as I'm sending strings, it doesn't make a functional difference.
 
       // These three commands come from the iOS app Segmented Control
@@ -225,12 +227,12 @@ void readFromBluetooth() {
         toggleAwakeState();
       } else if (newBTCommand == "Hello World!") {
         Serial.println(" Replying \"Hello\" to iOS App to confirm comms functionality.");
-        Serial1.write("M-O says Hello");        // send text back to M-O BLE app on iPhone
+        Serial2.write("M-O says Hello");        // send text back to M-O BLE app on iPhone
 
         // TODO - maybe this command calls a function that doesn't just say "Hello" on iOS screen, but resends state messages (isAsleep, etc) to all 3 'slaves.'
         
       } else if (newBTCommand == "M-O") {
-        Serial1.write("M-O says Mo");
+        Serial2.write("M-O says Mo");
         sendToI2CSlave("play-4", 1);
 
         // TODO - starting here, instead of sending play command, we should send emote string message,
@@ -238,7 +240,7 @@ void readFromBluetooth() {
         //   and use same model the rest of the way down
         
       } else if (newBTCommand == "Yip") {
-        Serial1.write("M-O says Yip");
+        Serial2.write("M-O says Yip");
         sendToI2CSlave("play-6", 1);
       } else if (newBTCommand == "Huh") {
         sendToI2CSlave("play-11", 1);

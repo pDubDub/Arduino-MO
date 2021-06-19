@@ -40,5 +40,5 @@ void sendMessageToAllListeners(String message) {
   sendToI2CSlave(message, 2);
 
 //  Serial.println((String)"\n -> Sending message \"" + message + "\" to iOS app over BT");
-  Serial1.print(message);
+  Serial2.print(message);
 }

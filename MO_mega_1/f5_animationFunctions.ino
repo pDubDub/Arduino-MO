@@ -92,3 +92,26 @@ void servosToStart() {
   moServo14Torso.goToStart();
   moServo15Foot.goToStart();
 }
+
+void torsoStandsUp() {
+  Serial.println();
+  Serial.println("Would call servo commands to stand up.");
+
+  moServo14Torso.commandTo(150);
+  newTestServo6.commandTo(90);
+//  newTestServo6.goToCenter();
+      // TODO - This goToCenter() command does not appear to be working.
+}
+
+void torsoParks() {
+  Serial.println();
+  Serial.println("Park command. Will send servos to start");
+  // really, this might be part of some other methods, like a sleep() method
+  // but might be able to be called seperately, so you can park him without sleeping him
+  servosToStart();
+}
+
+/*
+ * Wherever the sleep command lives, it might call the eyes to sleep and then call this Park() command.
+ * We might even do alternate park() methods, that might make him turn and then park, like he does when meeting Wall-E.
+ */

@@ -18,8 +18,19 @@ void toggleAwakeState() {
     message2send = "awake:1";
     // TODO - Why is there not a pulsingLEDisOn = false here?
 
-    moServo14Torso.commandTo(150);
+    
+    
       // tried making this goToCenter() but it did not work. ??
+      // but this simulates an awake servo animation
+//      moServo14Torso.commandTo(150);
+
+      torsoStandsUp();
+
+    /* there need to be more states... 
+     *        compact and asleep
+     *        compact and awake
+     *        standing and awake
+     */
 
     
   } else { 
@@ -38,7 +49,9 @@ void toggleAwakeState() {
     //   Then in the IMU code, add the pitchAdjust (and rollAdjust) values to pitch (and roll).
     // Probably don't want to do this until after we develop some smoothing/filtering code to make readings more stable.
 
-    servosToStart();
+    torsoParks();
+    
+//    servosToStart();
     // this is a temporary funciton in f5 to center the servos.
     // Eventually, we would want more sophisticated animations to send everything back to home positions.
     
@@ -49,7 +62,7 @@ void toggleAwakeState() {
 
   // TODO - Isn't it more efficent to use sendMessageToAllListeners() function?
   
-  Serial1.println(message2send);                                    // also send to app over BT
+  Serial2.println(message2send);                                    // also send to app over BT
   Serial.println("    Message \"" + message2send + "\" also sent to iOS app over BTLE.");
 
   lcd.setCursor(0, 0);
